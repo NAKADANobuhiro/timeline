@@ -1,0 +1,43 @@
+DATASETS.histori = {
+  name: "ヒストリエ", period: "前382〜前260年頃",
+  bce: true,
+  empLabel: "王",
+  categories: {
+    "マケドニア将軍": "#4a7db5",
+    "ディアドコイ":   "#e07820",
+    "王族・貴族":     "#c8a23a",
+    "学者・書記":     "#2ecc71",
+  },
+  persons: [
+    { name:"アンティパトロス", title:"マケドニア摂政",        birth:-400, death:-319, cat:"マケドニア将軍", birthUncertain:true },
+    { name:"フィリッポス2世",  title:"マケドニア王",          birth:-382, death:-336, cat:"マケドニア将軍" },
+    { name:"アンティゴノス1世",title:"隻眼王",                birth:-382, death:-301, cat:"ディアドコイ" },
+    { name:"プトレマイオス1世",title:"エジプト王",            birth:-367, death:-283, cat:"ディアドコイ", birthUncertain:true },
+    { name:"オリュンピアス",   title:"アレクサンドロスの母",  birth:-375, death:-316, cat:"王族・貴族", birthUncertain:true },
+    { name:"セレウコス1世",    title:"シリア王",              birth:-358, death:-281, cat:"ディアドコイ", birthUncertain:true },
+    { name:"エウメネス",       title:"書記長・将軍",          birth:-362, death:-316, cat:"学者・書記", birthUncertain:true, deathUncertain:true },
+    { name:"ヒエロニュモス",   title:"歴史家",                birth:-360, death:-260, cat:"学者・書記", birthUncertain:true, deathUncertain:true },
+    { name:"アレクサンドロス大王", title:"征服者",            birth:-356, death:-323, cat:"マケドニア将軍" },
+    { name:"クラテロス",       title:"マケドニア将軍",        birth:-370, death:-321, cat:"マケドニア将軍", birthUncertain:true },
+    { name:"ペルディッカス",   title:"マケドニア摂政",        birth:-355, death:-321, cat:"ディアドコイ", birthUncertain:true },
+    { name:"アリダイオス",     title:"マケドニア王（傀儡）",  birth:-359, death:-317, cat:"王族・貴族", birthUncertain:true },
+    { name:"ロクサネ",         title:"アレクサンドロスの王妃",birth:-340, death:-310, cat:"王族・貴族", birthUncertain:true, deathUncertain:true },
+    { name:"カッサンドロス",   title:"マケドニア王",          birth:-355, death:-297, cat:"ディアドコイ", birthUncertain:true },
+  ],
+  events: [
+    { year:-362, name:"マンティネイアの戦い" },
+    { year:-338, name:"カイロネイアの戦い" },
+    { year:-334, name:"東征開始" },
+    { year:-333, name:"イッソスの戦い" },
+    { year:-331, name:"ガウガメラの戦い" },
+    { year:-323, name:"アレクサンドロス死去" },
+    { year:-321, name:"トリパラディソス会議" },
+    { year:-301, name:"イプソスの戦い" },
+  ],
+  emperors: [
+    { name:"フィリッポス2世", start:-382, end:-336 },
+    { name:"アレクサンドロス大王", start:-336, end:-323 },
+    { name:"ディアドコイ分裂期", start:-322, end:-260 },
+  ],
+  retired: []
+};

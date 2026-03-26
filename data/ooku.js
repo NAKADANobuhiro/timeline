@@ -1,0 +1,41 @@
+DATASETS.ooku = {
+  name: "大奥", period: "1579〜1883年",
+  empLabel: "将軍",
+  categories: {
+    "将軍（大奥）": "#9b59b6",
+    "大奥女性":     "#e91e8c",
+    "大奥官僚":     "#e74c3c",
+    "学者・思想家": "#2ecc71",
+  },
+  persons: [
+    { name:"春日局",         title:"大奥初代総取締",   birth:1579, death:1643, cat:"大奥女性" },
+    { name:"徳川家光",       title:"三代将軍",         birth:1604, death:1651, cat:"将軍（大奥）" },
+    { name:"関孝和",         title:"算聖・和算の父",   birth:1642, death:1708, cat:"学者・思想家", birthUncertain:true },
+    { name:"徳川吉宗",       title:"八代将軍",         birth:1684, death:1751, cat:"将軍（大奥）" },
+    { name:"青木昆陽",       title:"甘藷先生",         birth:1698, death:1769, cat:"学者・思想家" },
+    { name:"田沼意次",       title:"老中・重商主義",   birth:1719, death:1788, cat:"大奥官僚" },
+    { name:"徳川家治",       title:"十代将軍",         birth:1737, death:1786, cat:"将軍（大奥）" },
+    { name:"松平定信",       title:"老中・寛政の改革", birth:1759, death:1829, cat:"大奥官僚" },
+    { name:"徳川家斉",       title:"十一代将軍",       birth:1773, death:1841, cat:"将軍（大奥）" },
+    { name:"水野忠邦",       title:"老中・天保の改革", birth:1794, death:1851, cat:"大奥官僚" },
+    { name:"徳川家定",       title:"十三代将軍",       birth:1824, death:1858, cat:"将軍（大奥）" },
+    { name:"瀧山",           title:"大奥年寄",         birth:1805, death:1876, cat:"大奥女性" },
+    { name:"篤姫（天璋院）", title:"家定の御台所",     birth:1836, death:1883, cat:"大奥女性" },
+    { name:"和宮",           title:"家茂の御台所",     birth:1846, death:1877, cat:"大奥女性" },
+  ],
+  events: [
+    { year:1716, name:"享保の改革" },
+    { year:1783, name:"天明の飢饉" },
+    { year:1787, name:"寛政の改革" },
+    { year:1841, name:"天保の改革" },
+    { year:1853, name:"黒船来航" },
+  ],
+  emperors: [
+    { name:"徳川家光（3代）",  start:1623, end:1651 },
+    { name:"徳川吉宗（8代）",  start:1716, end:1745 },
+    { name:"徳川家治（10代）", start:1760, end:1786 },
+    { name:"徳川家斉（11代）", start:1787, end:1837 },
+    { name:"徳川家定（13代）", start:1853, end:1858 },
+  ],
+  retired: []
+};

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>日本史タイムライン</title>
+  <title>歴史タイムライン</title>
   <link rel="stylesheet" href="css/timeline.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 </head>
@@ -40,8 +40,8 @@
         <button class="seg-btn seg-active" id="sort-birth"   onclick="setSort('birth')">生年順</button>
         <button class="seg-btn"            id="sort-cat"     onclick="setSort('category')">カテゴリ別</button>
       </div>
-      <button class="tbtn" onclick="zoomIn()">＋ 拡大</button>
       <button class="tbtn" onclick="zoomOut()">－ 縮小</button>
+      <button class="tbtn" onclick="zoomIn()">＋ 拡大</button>
       <button class="tbtn" onclick="resetZoom()">リセット</button>
 
       <!-- Hamburger button -->
@@ -116,6 +116,15 @@
 </div>
 
 <script src="js/data.js"></script>
+<script src="data/kamakura.js"></script>
+<script src="data/sengoku.js"></script>
+<script src="data/bakumatsu.js"></script>
+<script src="data/histori.js"></script>
+<script src="data/sangokushi.js"></script>
+<script src="data/nigejozu.js"></script>
+<script src="data/reiri.js"></script>
+<script src="data/ooku.js"></script>
+<script src="data/fuunji.js"></script>
 <script src="js/timeline.js"></script>
 
 </body>

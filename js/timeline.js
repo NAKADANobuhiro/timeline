@@ -143,13 +143,22 @@ function renderAgePanel() {
     .sort((a, b) => (selectedYear - b.birth) - (selectedYear - a.birth));
 
   alive.forEach(p => {
-    const color = ds.categories[p.cat] || '#888';
-    const age   = selectedYear - p.birth;
-    const item  = document.createElement('div');
+    const color  = ds.categories[p.cat] || '#888';
+    const age    = selectedYear - p.birth;
+
+    // Active serve roles at selectedYear
+    const serves = Array.isArray(p.serve) ? p.serve : (p.serve ? [p.serve] : []);
+    const activeRoles = serves
+      .filter(sv => sv.start <= selectedYear && selectedYear <= sv.end)
+      .map(sv => sv.role);
+    const roleSuffix = activeRoles.length > 0
+      ? `<span class="age-role">(${activeRoles.join('・')})</span>` : '';
+
+    const item = document.createElement('div');
     item.className = 'age-item age-alive';
     item.innerHTML =
       `<span class="age-dot" style="background:${color}"></span>` +
-      `<span class="age-name">${p.name}</span>` +
+      `<span class="age-name">${p.name}${roleSuffix}</span>` +
       `<span class="age-val">${age}歳</span>`;
     listEl.appendChild(item);
   });
