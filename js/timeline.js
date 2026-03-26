@@ -69,7 +69,7 @@ function applyTheme(theme) {
   const label = document.getElementById('theme-label');
   if (icon)  icon.textContent  = theme === 'light' ? '☀️' : '🌙';
   if (label) label.textContent = theme === 'light' ? 'ダークモードに切替' : 'ライトモードに切替';
-  loadDataset(currentKey);   // redraw chart with new colors
+  buildChart();   // redraw chart with new colors
 }
 
 function toggleTheme() {
@@ -88,7 +88,7 @@ function setSort(mode) {
   sortMode = mode;
   document.getElementById('sort-birth').classList.toggle('seg-active', mode === 'birth');
   document.getElementById('sort-cat').classList.toggle('seg-active', mode === 'category');
-  loadDataset(currentKey);
+  buildChart();
 }
 
 let svgEl, contentG, namesG, axisG, zoomBehavior, xScale;
@@ -101,15 +101,20 @@ let selectedYear = null; // currently selected year (for age panel)
    AGE PANEL
    ======================================================== */
 function selectYear(year) {
+  const wasOpen = selectedYear !== null;
   selectedYear = year;
   renderAgePanel();
   redrawFixed();   // refresh selection line
+  // Rebuild chart after panel-open transition completes (width change shifts chart area)
+  if (!wasOpen) setTimeout(buildChart, 240);
 }
 
 function closeAgePanel() {
   selectedYear = null;
   document.getElementById('age-panel').classList.remove('open');
   redrawFixed();
+  // Rebuild chart after panel-close transition completes
+  setTimeout(buildChart, 240);
 }
 
 function renderAgePanel() {
@@ -211,7 +216,7 @@ function renderFilters(ds) {
       `<span class="filter-dot" style="background:${color}"></span>${cat}`;
     lbl.querySelector('input').onchange = e => {
       visibleCats[cat] = e.target.checked;
-      loadDataset(currentKey);
+      buildChart();
     };
     sec.appendChild(lbl);
   });
@@ -237,13 +242,14 @@ function toggleSidebar() {
   sb.classList.toggle('collapsed', !sidebarOpen);
   // expand-btn はサイドバーが閉じているときだけ表示
   expandBtn.style.display = sidebarOpen ? 'none' : 'flex';
-  setTimeout(() => loadDataset(currentKey), 270);
+  setTimeout(buildChart, 270);
 }
 
 /* ========================================================
    MAIN CHART
    ======================================================== */
 function loadDataset(key) {
+  currentKey = key;
   const ds = DATASETS[key];
   document.getElementById('t-title').textContent = ds.name;
   // Reset year selection when switching datasets
@@ -251,10 +257,14 @@ function loadDataset(key) {
   document.getElementById('age-panel').classList.remove('open');
   renderFilters(ds);
   renderLegend(ds);
-
   // Reset zoom when switching datasets
   curT = d3.zoomIdentity;
+  buildChart();
+}
 
+/* ── Rebuild chart SVG (preserves zoom & selectedYear) ── */
+function buildChart() {
+  const ds = DATASETS[currentKey];
   const wrap = document.getElementById('chart-wrap');
   wrap.innerHTML = '';
 
@@ -899,7 +909,7 @@ document.addEventListener('keydown', e => {
   if (e.key === '0') resetZoom();
 });
 
-window.addEventListener('resize', () => loadDataset(currentKey));
+window.addEventListener('resize', buildChart);
 
 /* ========================================================
    BOOT

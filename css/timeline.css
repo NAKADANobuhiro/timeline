@@ -148,19 +148,25 @@ body {
 /* ── Main panel ───────────────────────────── */
 #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; position: relative; }
 
+/* ── Chart + Age panel row ────────────────── */
+#chart-row { display: flex; flex-direction: row; flex: 1; overflow: hidden; min-height: 0; }
+
 /* ── Age Panel ────────────────────────────── */
 #age-panel {
-  position: absolute; right: 0; top: 46px; bottom: 0;
-  width: 220px;
+  flex-shrink: 0;
+  width: 0;
+  overflow: hidden;
   background: var(--surface);
-  border-left: 1px solid var(--border);
+  border-left: none;
   display: flex; flex-direction: column;
   z-index: 20;
-  transform: translateX(100%);
-  transition: transform 0.22s ease, background 0.3s;
+  transition: width 0.22s ease, background 0.3s;
   box-shadow: -4px 0 18px rgba(0,0,0,0.25);
 }
-#age-panel.open { transform: translateX(0); }
+#age-panel.open {
+  width: 220px;
+  border-left: 1px solid var(--border);
+}
 
 #age-panel-head {
   display: flex; align-items: center; justify-content: space-between;
