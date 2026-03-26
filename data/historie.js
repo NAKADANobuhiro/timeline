@@ -1,4 +1,4 @@
-DATASETS.histori = {
+DATASETS.historie = {
   name: "ヒストリエ", period: "前382〜前260年頃",
   bce: true,
   empLabel: "王",
