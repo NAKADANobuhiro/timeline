@@ -366,9 +366,15 @@ function buildChart() {
       return !event.ctrlKey && !event.button;
     })
     .on('start', event => {
-      // Record pointer position at gesture start (mousedown)
+      // Record pointer position at gesture start (mousedown / touchstart)
       const src = event.sourceEvent;
-      if (src) { _clMdX = src.clientX; _clMdY = src.clientY; }
+      if (!src) return;
+      if (src.type === 'touchstart') {
+        const t = src.touches && src.touches[0];
+        if (t) { _clMdX = t.clientX; _clMdY = t.clientY; }
+      } else {
+        _clMdX = src.clientX; _clMdY = src.clientY;
+      }
     })
     .on('zoom', event => {
       let t = event.transform;
@@ -388,17 +394,29 @@ function buildChart() {
         Math.round(curT.k * 100) + '%';
     })
     .on('end', event => {
-      // Detect click: gesture ended near where it started (no significant drag)
+      // Detect tap/click: gesture ended near where it started (no significant drag)
       const src = event.sourceEvent;
-      if (!src || src.type !== 'mouseup') return;
-      if (Math.abs(src.clientX - _clMdX) > 5 ||
-          Math.abs(src.clientY - _clMdY) > 5) return;
+      if (!src) return;
+
+      // Resolve end coordinates for mouse and touch
+      let endX, endY;
+      if (src.type === 'touchend') {
+        const t = src.changedTouches && src.changedTouches[0];
+        if (!t) return;
+        endX = t.clientX; endY = t.clientY;
+      } else if (src.type === 'mouseup') {
+        endX = src.clientX; endY = src.clientY;
+      } else {
+        return;
+      }
+
+      if (Math.abs(endX - _clMdX) > 8 || Math.abs(endY - _clMdY) > 8) return;
       const rect = svgEl.node().getBoundingClientRect();
-      const px = src.clientX - rect.left;
+      const px = endX - rect.left;
       if (px < NAME_W) return;   // names panel
 
-      // Snap to an event year if click is within 12px of its vertical line
-      const SNAP_PX = 12;
+      // Snap to an event year if tap is within 16px of its vertical line
+      const SNAP_PX = src.type === 'touchend' ? 16 : 12;
       let year = null;
       for (const ev of DATASETS[currentKey].events) {
         const evSx = NAME_W + curT.x + xScale(ev.year) * curT.k;
