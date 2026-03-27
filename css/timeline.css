@@ -392,3 +392,65 @@ body.light .pill::after { left: 19px; }
 }
 .form-grp textarea { height: 170px; font-family: monospace; font-size: 11px; resize: vertical; }
 .hint { font-size: 10px; color: var(--text-muted); line-height: 1.6; }
+
+/* ── Mobile-only helpers ──────────────────── */
+.mobile-only { display: none !important; }
+
+/* ── Mobile layout (< 600px) ─────────────── */
+@media (max-width: 599px) {
+
+  /* Toolbar: hide non-essential items → moved to hamburger */
+  #zoom-info  { display: none; }
+  .seg-ctrl   { display: none; }
+  .tbtn       { display: none; }
+  .mobile-only { display: flex !important; }
+
+  /* Sidebar: full-width overlay so chart stays usable */
+  #sidebar {
+    position: absolute;
+    z-index: 50;
+    height: 100%;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.4);
+  }
+
+  /* Age panel: bottom sheet instead of right panel */
+  #chart-row { display: block; }   /* disable flex so panel doesn't shrink chart */
+
+  #age-panel {
+    position: fixed;
+    left: 0; right: 0; bottom: 0; top: auto;
+    width: 100% !important;
+    height: 0;
+    border-left: none !important;
+    border-top: none;
+    border-radius: 18px 18px 0 0;
+    transition: height 0.28s cubic-bezier(.4,0,.2,1), background 0.3s;
+    box-shadow: 0 -6px 28px rgba(0,0,0,0.4);
+    overflow: hidden;
+  }
+  #age-panel.open {
+    height: 58vh;
+    width: 100% !important;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Drag handle bar */
+  #age-panel-head::before {
+    content: '';
+    display: block;
+    width: 36px; height: 4px;
+    background: var(--border-lite);
+    border-radius: 2px;
+    margin: 0 auto 10px;
+  }
+  #age-panel-head {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 14px;
+    position: relative;
+  }
+  #age-panel-close {
+    position: absolute;
+    top: 14px; right: 12px;
+  }
+}

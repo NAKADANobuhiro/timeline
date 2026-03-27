@@ -1,11 +1,12 @@
 /* ===== CONSTANTS ===== */
 const NAME_W     = 170;
-let   HDR_H      = 82;    // dynamic: expands to fit event lanes
+let   HDR_H      = 82;    // dynamic: computed from MAX_EV_LANES_VISIBLE
 const ROW_H      = 28;
 const RULER_H    = 26;    // height per ruler band row (天皇・将軍・執権 etc.)
 const EV_LANE_H  = 20;    // height per event label lane
 const EV_TICK_H  = 20;    // year-tick area at the bottom of the header
 const EV_BASE_FONT = 11;  // base font size for event labels
+const MAX_EV_LANES_VISIBLE = 3;  // イベントエリアに同時表示するレーン数（固定）
 
 /* ===== THEME ===== */
 // Read a CSS custom property from body (reflects current dark/light mode)
@@ -37,26 +38,11 @@ function getRulers(ds) {
   return out;
 }
 
-// Compute required header height based on how many event lanes are needed at k=1
+// Compute header height — fixed to MAX_EV_LANES_VISIBLE lanes (event area is scrollable)
 function computeHeaderHeight(ds, chartW) {
   const base = EV_TICK_H;
-  if (!ds.events || ds.events.length === 0) return base;
-
-  const fontSize = EV_BASE_FONT;
-  const items = ds.events.map(ev => ({
-    sx: xScale(ev.year),            // pixel x at default zoom (k=1, no pan)
-    w:  evLabelW(fmtYear(ev.year) + ' ' + ev.name, fontSize)
-  })).sort((a, b) => a.sx - b.sx);
-
-  const lanes = [];                 // each entry = right edge of last label in that lane
-  for (const item of items) {
-    const leftEdge = item.sx - item.w / 2 - 4;
-    let lane = lanes.findIndex(r => leftEdge >= r);
-    if (lane === -1) { lane = lanes.length; lanes.push(0); }
-    lanes[lane] = item.sx + item.w / 2;
-  }
-
-  return base + Math.max(1, lanes.length) * EV_LANE_H;
+  if (!ds.events || ds.events.length === 0) return base + EV_LANE_H;
+  return base + MAX_EV_LANES_VISIBLE * EV_LANE_H;
 }
 
 let currentTheme = localStorage.getItem('tl-theme') || 'dark';
@@ -83,6 +69,8 @@ let curPersons  = [];
 let curT        = d3.zoomIdentity;
 let sortMode    = 'birth';      // 'birth' | 'category'
 let groupStarts = new Set();    // row indices that begin a new category group
+let evScrollY   = 0;            // イベントエリアのスクロール量（px）
+let evTotalLanes = 0;           // 現在のイベントレーン総数（drawAxisPanel が設定）
 
 function setSort(mode) {
   sortMode = mode;
@@ -100,21 +88,26 @@ let selectedYear = null; // currently selected year (for age panel)
 /* ========================================================
    AGE PANEL
    ======================================================== */
+
+// モバイル判定（< 600px ではボトムシートになるため幅に影響しない）
+function isMobile() { return window.innerWidth < 600; }
+
 function selectYear(year) {
   const wasOpen = selectedYear !== null;
   selectedYear = year;
   renderAgePanel();
   redrawFixed();   // refresh selection line
-  // Rebuild chart after panel-open transition completes (width change shifts chart area)
-  if (!wasOpen) setTimeout(buildChart, 240);
+  // デスクトップ: パネルが右に展開してチャート幅が変わるので再描画
+  // モバイル: ボトムシートなのでチャート幅は変わらない → スキップ
+  if (!wasOpen && !isMobile()) setTimeout(buildChart, 240);
 }
 
 function closeAgePanel() {
   selectedYear = null;
   document.getElementById('age-panel').classList.remove('open');
   redrawFixed();
-  // Rebuild chart after panel-close transition completes
-  setTimeout(buildChart, 240);
+  // デスクトップのみ再描画
+  if (!isMobile()) setTimeout(buildChart, 240);
 }
 
 function renderAgePanel() {
@@ -257,8 +250,9 @@ function loadDataset(key) {
   document.getElementById('age-panel').classList.remove('open');
   renderFilters(ds);
   renderLegend(ds);
-  // Reset zoom when switching datasets
+  // Reset zoom and event scroll when switching datasets
   curT = d3.zoomIdentity;
+  evScrollY = 0;
   buildChart();
 }
 
@@ -322,11 +316,19 @@ function buildChart() {
     .attr('width', W).attr('height', H)
     .style('display', 'block');
 
-  /* ── Clip path: only allows drawing inside the chart area ── */
-  svgEl.append('defs').append('clipPath').attr('id', 'clip-chart')
+  /* ── Clip paths ── */
+  const defs = svgEl.append('defs');
+  // Chart body clip
+  defs.append('clipPath').attr('id', 'clip-chart')
     .append('rect')
       .attr('x', NAME_W).attr('y', HDR_H)
       .attr('width', chartW).attr('height', chartH);
+  // Event area clip (hides overflow during scroll)
+  const evAreaH = HDR_H - EV_TICK_H;
+  defs.append('clipPath').attr('id', 'clip-ev')
+    .append('rect')
+      .attr('x', NAME_W).attr('y', 0)
+      .attr('width', chartW).attr('height', evAreaH);
 
   /* ── Content group (zoomable, clipped) ──
        Items inside are drawn as if origin = top-left of chart area.
@@ -432,27 +434,37 @@ function buildChart() {
   svgEl.call(zoomBehavior);
 
   /* ── ホイール → スクロール ──
-        通常ホイール : 縦スクロール
-        Shift+ホイール : 横スクロール ── */
+        イベントエリア上 : イベントを縦スクロール
+        通常ホイール     : チャートを縦スクロール
+        Shift+ホイール   : チャートを横スクロール ── */
+  // evAreaH は上の defs セクションで宣言済み
+
   svgEl.on('wheel.scroll', function(event) {
     event.preventDefault();
-    const delta = event.deltaMode === 1          // ラインモード
-      ? event.deltaY * ROW_H                     // 1行分
-      : event.deltaY;                            // ピクセルモード
-    const hDelta = event.deltaMode === 1
-      ? event.deltaX * ROW_H
-      : event.deltaX;
+    const svgRect = svgEl.node().getBoundingClientRect();
+    const mouseY  = event.clientY - svgRect.top;
 
-    // Shift押下 or 水平ホイールがある場合は横スクロール
+    // ── イベントエリア上のホイール → イベントスクロール ──
+    if (mouseY < evAreaH && !event.shiftKey) {
+      const delta = event.deltaMode === 1 ? event.deltaY * EV_LANE_H : event.deltaY;
+      const totalEvH  = evTotalLanes * EV_LANE_H;
+      const maxScroll = Math.max(0, totalEvH - evAreaH);
+      evScrollY = Math.max(0, Math.min(evScrollY + delta, maxScroll));
+      redrawFixed();
+      return;
+    }
+
+    // ── チャートエリアのホイール → チャートスクロール ──
+    const delta = event.deltaMode === 1 ? event.deltaY * ROW_H : event.deltaY;
+    const hDelta = event.deltaMode === 1 ? event.deltaX * ROW_H : event.deltaX;
+
     const dx = event.shiftKey ? -delta : -hDelta;
     const dy = event.shiftKey ? 0      : -delta;
 
     let newT = curT.translate(dx, dy);
 
-    // Clamp vertical: no blank space above first row or below last row
     const minY = Math.min(0, curChartH - curTotalDataH * newT.k);
     const clampedY = Math.max(minY, Math.min(0, newT.y));
-    // Clamp horizontal: no blank space left of data start or right of data end
     const minX = Math.min(0, curChartW - curChartW * newT.k);
     const clampedX = Math.max(minX, Math.min(0, newT.x));
     if (clampedY !== newT.y || clampedX !== newT.x) {
@@ -461,6 +473,29 @@ function buildChart() {
 
     svgEl.call(zoomBehavior.transform, newT);
   }, { passive: false });
+
+  /* ── タッチ → イベントエリアスクロール（モバイル） ── */
+  let _evTouchY = null;
+  svgEl.on('touchstart.evscroll', function(event) {
+    const t0 = event.touches[0];
+    const svgRect = svgEl.node().getBoundingClientRect();
+    if (t0.clientY - svgRect.top < evAreaH) {
+      _evTouchY = t0.clientY;
+    } else {
+      _evTouchY = null;
+    }
+  }, { passive: true });
+
+  svgEl.on('touchmove.evscroll', function(event) {
+    if (_evTouchY === null) return;
+    const t0 = event.touches[0];
+    const dy = _evTouchY - t0.clientY;
+    _evTouchY = t0.clientY;
+    const totalEvH  = evTotalLanes * EV_LANE_H;
+    const maxScroll = Math.max(0, totalEvH - evAreaH);
+    evScrollY = Math.max(0, Math.min(evScrollY + dy, maxScroll));
+    redrawFixed();
+  }, { passive: true });
 
 }
 
@@ -738,59 +773,85 @@ function drawAxisPanel() {
     .attr('x', NAME_W).attr('width', chartW).attr('height', HDR_H)
     .attr('fill', cv('--chart-panel'));
 
-  /* ── Event lanes (horizontal labels, staggered to avoid overlap) ── */
-  const evAreaTop    = 0;               // y-start of event label area
-  const evAreaBottom = HDR_H - EV_TICK_H;  // y-end of event label area
+  /* ── Event lanes (horizontal labels, staggered + scrollable) ── */
+  const evAreaTop    = 0;
+  const evAreaBottom = HDR_H - EV_TICK_H;  // visible height of event area
+  const evFontSize   = Math.min(16, Math.max(11, EV_BASE_FONT * t.k));
 
-  // Font size scales with zoom, larger base than before
-  const evFontSize = Math.min(16, Math.max(11, EV_BASE_FONT * t.k));
-
-  // Compute screen x for each event and estimate label width at current font size
-  const evItems = ds.events.map(ev => {
+  // Compute screen x for each event (use all events for correct lane assignment)
+  const evItemsAll = ds.events.map(ev => {
     const sx   = NAME_W + t.x + xScale(ev.year) * t.k;
     const text = fmtYear(ev.year) + ' ' + ev.name;
     return { ev, sx, text, w: evLabelW(text, evFontSize) };
-  }).filter(item => item.sx + item.w / 2 >= NAME_W && item.sx - item.w / 2 <= W);
+  });
+  evItemsAll.sort((a, b) => a.sx - b.sx);
 
-  evItems.sort((a, b) => a.sx - b.sx);
-
-  // Greedy lane assignment: place each event in the first lane with no overlap
-  const lanes = [];   // lanes[i] = right edge of the last label placed in lane i
-  for (const item of evItems) {
+  // Greedy lane assignment (all events, not just visible ones)
+  const laneRights = [];
+  for (const item of evItemsAll) {
     const leftEdge = item.sx - item.w / 2 - 5;
-    let lane = lanes.findIndex(rightEdge => leftEdge >= rightEdge);
-    if (lane === -1) { lane = lanes.length; lanes.push(0); }
-    lanes[lane] = item.sx + item.w / 2;
+    let lane = laneRights.findIndex(r => leftEdge >= r);
+    if (lane === -1) { lane = laneRights.length; laneRights.push(0); }
+    laneRights[lane] = item.sx + item.w / 2;
     item.lane = lane;
   }
+  evTotalLanes = Math.max(1, laneRights.length);
 
-  // Draw each event label and its connector
+  // Clamp evScrollY
+  const totalEvH  = evTotalLanes * EV_LANE_H;
+  const maxScroll = Math.max(0, totalEvH - evAreaBottom);
+  evScrollY = Math.max(0, Math.min(evScrollY, maxScroll));
+
+  // Clip group for event labels
+  const evG = axisG.append('g').attr('clip-path', 'url(#clip-ev)');
+
+  // Draw only visible events (within viewport x and scrolled y range)
+  const evItems = evItemsAll.filter(
+    item => item.sx + item.w / 2 >= NAME_W && item.sx - item.w / 2 <= W
+  );
+
   for (const item of evItems) {
-    const centerY = evAreaTop + (item.lane + 0.5) * EV_LANE_H;
-    if (centerY + evFontSize * 0.5 > evAreaBottom) continue;  // overflow guard
+    const centerY = evAreaTop + (item.lane + 0.5) * EV_LANE_H - evScrollY;
 
-    // Thin vertical connector from label bottom to tick area
-    axisG.append('line')
-      .attr('x1', item.sx).attr('y1', centerY + evFontSize * 0.65)
-      .attr('x2', item.sx).attr('y2', evAreaBottom)
-      .attr('stroke', cv('--chart-ev-line'))
-      .attr('stroke-width', 0.8).attr('opacity', 0.45);
+    // Thin vertical connector (clipped)
+    if (centerY + evFontSize * 0.65 < evAreaBottom) {
+      evG.append('line')
+        .attr('x1', item.sx).attr('y1', centerY + evFontSize * 0.65)
+        .attr('x2', item.sx).attr('y2', evAreaBottom)
+        .attr('stroke', cv('--chart-ev-line'))
+        .attr('stroke-width', 0.8).attr('opacity', 0.45);
+    }
 
-    // Downward-pointing triangle at the tick-area boundary
+    // Downward-pointing triangle
     const ty = evAreaBottom;
     axisG.append('polygon')
       .attr('points', `${item.sx-4},${ty} ${item.sx+4},${ty} ${item.sx},${ty+6}`)
       .attr('fill', cv('--chart-ev-line')).attr('opacity', 0.85);
 
-    // Horizontal event label (clickable to select that year)
+    // Event label (clipped)
     const isSelected = selectedYear === item.ev.year;
-    axisG.append('text')
+    evG.append('text')
       .attr('x', item.sx).attr('y', centerY)
       .attr('text-anchor', 'middle').attr('dominant-baseline', 'middle')
       .attr('fill', isSelected ? cv('--accent') : cv('--chart-ev-text'))
       .attr('font-size', evFontSize).attr('font-weight', isSelected ? 700 : 500)
       .attr('cursor', 'pointer')
       .text(item.text);
+  }
+
+  // Mini scrollbar (if event content overflows)
+  if (maxScroll > 0) {
+    const sbW = 3, sbX = W - sbW - 2;
+    const thumbH  = Math.max(16, evAreaBottom * (evAreaBottom / totalEvH));
+    const thumbTop = (evScrollY / totalEvH) * evAreaBottom;
+    axisG.append('rect')   // track
+      .attr('x', sbX).attr('y', 0)
+      .attr('width', sbW).attr('height', evAreaBottom)
+      .attr('fill', cv('--border')).attr('rx', sbW / 2).attr('opacity', 0.5);
+    axisG.append('rect')   // thumb
+      .attr('x', sbX).attr('y', thumbTop)
+      .attr('width', sbW).attr('height', thumbH)
+      .attr('fill', cv('--text-muted')).attr('rx', sbW / 2).attr('opacity', 0.8);
   }
 
   /* ── Year ticks (bottom strip of header) ── */
