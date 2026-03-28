@@ -1128,6 +1128,19 @@ document.addEventListener('keydown', e => {
     selectYear(selectedYear - 1);
     scrollYearIntoView(selectedYear);
   }
+  // 上下矢印 → 縦スクロール（3行分）
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    const step  = ROW_H * 3;   // データ座標で3行分
+    const dy    = e.key === 'ArrowDown' ? -step : step;
+    let newT    = curT.translate(0, dy);
+    const minY  = Math.min(0, curChartH - curTotalDataH * newT.k);
+    const clampedY = Math.max(minY, Math.min(0, newT.y));
+    if (clampedY !== newT.y) {
+      newT = d3.zoomIdentity.translate(newT.x / newT.k, clampedY / newT.k).scale(newT.k);
+    }
+    svgEl.call(zoomBehavior.transform, newT);
+  }
 });
 
 window.addEventListener('resize', buildChart);
