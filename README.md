@@ -39,7 +39,7 @@ timeline/
 
 `index.html` をブラウザで直接開くだけで動作します（サーバー不要）。
 
-サンプルは https://nakadanobuhiro.github.io/timeline/ で公開しています。
+サンプルは https://timeline.ironsite.net/ で公開しています。
 
 ## データセットの追加方法
 

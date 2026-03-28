@@ -996,6 +996,8 @@ document.addEventListener('keydown', e => {
   if (e.key === '+' || e.key === '=') zoomIn();
   if (e.key === '-') zoomOut();
   if (e.key === '0') resetZoom();
+  if (e.key === 'ArrowRight' && selectedYear !== null) selectYear(selectedYear + 1);
+  if (e.key === 'ArrowLeft'  && selectedYear !== null) selectYear(selectedYear - 1);
 });
 
 window.addEventListener('resize', buildChart);
