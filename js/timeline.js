@@ -740,7 +740,11 @@ function drawNamesPanel() {
     const nameEl = namesG.append('text')
       .attr('x', NAME_W - 8).attr('y', sy)
       .attr('text-anchor', 'end').attr('dominant-baseline', 'middle')
-      .attr('font-size', fsSz).attr('font-weight', 600);
+      .attr('font-size', fsSz).attr('font-weight', 600)
+      .attr('cursor', 'pointer')
+      .on('click', (function(person) {
+        return function(event) { event.stopPropagation(); selectYear(person.birth); };
+      })(p));
     nameEl.append('tspan').attr('fill', color).text(p.name);
     if (p.fictional) {
       nameEl.append('tspan')
@@ -836,7 +840,10 @@ function drawAxisPanel() {
       .attr('fill', isSelected ? cv('--accent') : cv('--chart-ev-text'))
       .attr('font-size', evFontSize).attr('font-weight', isSelected ? 700 : 500)
       .attr('cursor', 'pointer')
-      .text(item.text);
+      .text(item.text)
+      .on('click', (function(evYear) {
+        return function(event) { event.stopPropagation(); selectYear(evYear); };
+      })(item.ev.year));
   }
 
   // Mini scrollbar (if event content overflows)
@@ -871,7 +878,10 @@ function drawAxisPanel() {
       .attr('x', sx).attr('y', HDR_H - 8)
       .attr('text-anchor', 'middle').attr('fill', cv('--chart-yr-text')).attr('font-size', 10)
       .attr('cursor', 'pointer')
-      .text(fmtYear(yr));
+      .text(fmtYear(yr))
+      .on('click', (function(y) {
+        return function(event) { event.stopPropagation(); selectYear(y); };
+      })(yr));
   }
 
   /* ── Selected year: vertical line through header + chart ── */
