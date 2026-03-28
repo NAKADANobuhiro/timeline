@@ -1082,6 +1082,32 @@ function closeModal() {
 }
 
 /* ========================================================
+   SCROLL YEAR INTO VIEW
+   選択年の縦線が画面端に近づいたとき、自動スクロールして追従させる
+   ======================================================== */
+function scrollYearIntoView(year) {
+  const margin = 80;  // 画面端からのマージン（px）
+  const sx = NAME_W + curT.x + xScale(year) * curT.k * kXExtra;
+  const rightEdge = NAME_W + curChartW;
+
+  let newX = curT.x;
+  if (sx < NAME_W + margin) {
+    // 左端に近い → 右にスクロール
+    newX = margin - xScale(year) * curT.k * kXExtra;
+  } else if (sx > rightEdge - margin) {
+    // 右端に近い → 左にスクロール
+    newX = (curChartW - margin) - xScale(year) * curT.k * kXExtra;
+  }
+
+  if (newX === curT.x) return;
+
+  const minX     = Math.min(0, curChartW - curChartW * curT.k * kXExtra);
+  const clampedX = Math.max(minX, Math.min(0, newX));
+  curT = d3.zoomIdentity.translate(clampedX / curT.k, curT.y / curT.k).scale(curT.k);
+  svgEl.call(zoomBehavior.transform, curT);
+}
+
+/* ========================================================
    KEYBOARD SHORTCUTS
    ======================================================== */
 document.addEventListener('keydown', e => {
@@ -1093,9 +1119,15 @@ document.addEventListener('keydown', e => {
   // Shift+左右矢印 → 横軸のみ拡大縮小（ビューポート中央基準）
   if (e.key === 'ArrowRight' && e.shiftKey) { zoomXBy(1.2, NAME_W + curChartW / 2); return; }
   if (e.key === 'ArrowLeft'  && e.shiftKey) { zoomXBy(1 / 1.2, NAME_W + curChartW / 2); return; }
-  // 左右矢印（Shiftなし）→ 選択年を1年移動
-  if (e.key === 'ArrowRight' && !e.shiftKey && selectedYear !== null) selectYear(selectedYear + 1);
-  if (e.key === 'ArrowLeft'  && !e.shiftKey && selectedYear !== null) selectYear(selectedYear - 1);
+  // 左右矢印（Shiftなし）→ 選択年を1年移動 + 画面端で自動スクロール
+  if (e.key === 'ArrowRight' && !e.shiftKey && selectedYear !== null) {
+    selectYear(selectedYear + 1);
+    scrollYearIntoView(selectedYear);
+  }
+  if (e.key === 'ArrowLeft' && !e.shiftKey && selectedYear !== null) {
+    selectYear(selectedYear - 1);
+    scrollYearIntoView(selectedYear);
+  }
 });
 
 window.addEventListener('resize', buildChart);
