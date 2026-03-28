@@ -1,5 +1,5 @@
 DATASETS.fuunji = {
-  name: "風雲児たち", period: "1723〜1866年",
+  name: "風雲児たち  蘭学革命篇", period: "1723〜1866年",
   empLabel: "将軍",
   categories: {
     "学者・思想家": "#2ecc71",
