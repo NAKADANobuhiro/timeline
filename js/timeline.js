@@ -71,6 +71,7 @@ let sortMode    = 'birth';      // 'birth' | 'category'
 let groupStarts = new Set();    // row indices that begin a new category group
 let evScrollY   = 0;            // イベントエリアのスクロール量（px）
 let evTotalLanes = 0;           // 現在のイベントレーン総数（drawAxisPanel が設定）
+let evHitItems  = [];           // イベントラベルのヒット範囲（drawAxisPanel が設定）
 
 function setSort(mode) {
   sortMode = mode;
@@ -415,14 +416,34 @@ function buildChart() {
       if (Math.abs(endX - _clMdX) > 8 || Math.abs(endY - _clMdY) > 8) return;
       const rect = svgEl.node().getBoundingClientRect();
       const px = endX - rect.left;
-      if (px < NAME_W) return;   // names panel
+      const py = endY - rect.top;
 
-      // Snap to an event year if tap is within 16px of its vertical line
+      // Names panel click → select clicked person's birth year
+      if (px < NAME_W) {
+        if (py >= HDR_H) {
+          const dataY = (py - HDR_H - curT.y) / curT.k;
+          const idx   = Math.floor(dataY / ROW_H);
+          if (idx >= 0 && idx < curPersons.length) {
+            selectYear(curPersons[idx].birth);
+          }
+        }
+        return;
+      }
+
+      // Snap to an event year if tap is within SNAP_PX of its vertical line
       const SNAP_PX = src.type === 'touchend' ? 16 : 12;
       let year = null;
       for (const ev of DATASETS[currentKey].events) {
         const evSx = NAME_W + curT.x + xScale(ev.year) * curT.k;
         if (Math.abs(px - evSx) <= SNAP_PX) { year = ev.year; break; }
+      }
+      // ラベルテキストの幅内をクリックした場合もそのイベント年にスナップ
+      if (year === null) {
+        for (const hit of evHitItems) {
+          if (px >= hit.sx - hit.w / 2 && px <= hit.sx + hit.w / 2) {
+            year = hit.evYear; break;
+          }
+        }
       }
       if (year === null) {
         const dataX = (px - NAME_W - curT.x) / curT.k;
@@ -741,10 +762,7 @@ function drawNamesPanel() {
       .attr('x', NAME_W - 8).attr('y', sy)
       .attr('text-anchor', 'end').attr('dominant-baseline', 'middle')
       .attr('font-size', fsSz).attr('font-weight', 600)
-      .attr('cursor', 'pointer')
-      .on('click', (function(person) {
-        return function(event) { event.stopPropagation(); selectYear(person.birth); };
-      })(p));
+      .attr('cursor', 'pointer');
     nameEl.append('tspan').attr('fill', color).text(p.name);
     if (p.fictional) {
       nameEl.append('tspan')
@@ -801,6 +819,11 @@ function drawAxisPanel() {
   }
   evTotalLanes = Math.max(1, laneRights.length);
 
+  // ラベルのヒット範囲を保存（ズームの end ハンドラーが参照）
+  evHitItems = evItemsAll.map(item => ({
+    sx: item.sx, w: item.w, evYear: item.ev.year
+  }));
+
   // Clamp evScrollY
   const totalEvH  = evTotalLanes * EV_LANE_H;
   const maxScroll = Math.max(0, totalEvH - evAreaBottom);
@@ -840,10 +863,7 @@ function drawAxisPanel() {
       .attr('fill', isSelected ? cv('--accent') : cv('--chart-ev-text'))
       .attr('font-size', evFontSize).attr('font-weight', isSelected ? 700 : 500)
       .attr('cursor', 'pointer')
-      .text(item.text)
-      .on('click', (function(evYear) {
-        return function(event) { event.stopPropagation(); selectYear(evYear); };
-      })(item.ev.year));
+      .text(item.text);
   }
 
   // Mini scrollbar (if event content overflows)
@@ -878,10 +898,7 @@ function drawAxisPanel() {
       .attr('x', sx).attr('y', HDR_H - 8)
       .attr('text-anchor', 'middle').attr('fill', cv('--chart-yr-text')).attr('font-size', 10)
       .attr('cursor', 'pointer')
-      .text(fmtYear(yr))
-      .on('click', (function(y) {
-        return function(event) { event.stopPropagation(); selectYear(y); };
-      })(yr));
+      .text(fmtYear(yr));
   }
 
   /* ── Selected year: vertical line through header + chart ── */
