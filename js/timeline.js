@@ -72,6 +72,7 @@ let groupStarts = new Set();    // row indices that begin a new category group
 let evScrollY   = 0;            // イベントエリアのスクロール量（px）
 let evTotalLanes = 0;           // 現在のイベントレーン総数（drawAxisPanel が設定）
 let evHitItems  = [];           // イベントラベルのヒット範囲（drawAxisPanel が設定）
+let kXExtra     = 1.0;          // 横軸のみの追加拡大率（横ズーム機能）
 
 function setSort(mode) {
   sortMode = mode;
@@ -254,6 +255,7 @@ function loadDataset(key) {
   // Reset zoom and event scroll when switching datasets
   curT = d3.zoomIdentity;
   evScrollY = 0;
+  kXExtra = 1.0;
   buildChart();
 }
 
@@ -385,7 +387,7 @@ function buildChart() {
       const minY = Math.min(0, curChartH - curTotalDataH * t.k);
       const clampedY = Math.max(minY, Math.min(0, t.y));
       // Clamp horizontal: no blank space left of data start or right of data end
-      const minX = Math.min(0, curChartW - curChartW * t.k);
+      const minX = Math.min(0, curChartW - curChartW * t.k * kXExtra);
       const clampedX = Math.max(minX, Math.min(0, t.x));
       if (clampedY !== t.y || clampedX !== t.x) {
         t = d3.zoomIdentity.scale(t.k).translate(clampedX / t.k, clampedY / t.k);
@@ -434,7 +436,7 @@ function buildChart() {
       const SNAP_PX = src.type === 'touchend' ? 16 : 12;
       let year = null;
       for (const ev of DATASETS[currentKey].events) {
-        const evSx = NAME_W + curT.x + xScale(ev.year) * curT.k;
+        const evSx = NAME_W + curT.x + xScale(ev.year) * curT.k * kXExtra;
         if (Math.abs(px - evSx) <= SNAP_PX) { year = ev.year; break; }
       }
       // ラベルテキストの幅内をクリックした場合もそのイベント年にスナップ
@@ -446,7 +448,7 @@ function buildChart() {
         }
       }
       if (year === null) {
-        const dataX = (px - NAME_W - curT.x) / curT.k;
+        const dataX = (px - NAME_W - curT.x) / (curT.k * kXExtra);
         year = Math.round(xScale.invert(dataX));
       }
       selectYear(year);
@@ -464,6 +466,15 @@ function buildChart() {
     event.preventDefault();
     const svgRect = svgEl.node().getBoundingClientRect();
     const mouseY  = event.clientY - svgRect.top;
+
+    // ── Ctrl+ホイール → 横軸のみ拡大縮小 ──
+    if (event.ctrlKey) {
+      const delta  = event.deltaMode === 1 ? event.deltaY * ROW_H : event.deltaY;
+      const factor = delta > 0 ? 1 / 1.15 : 1.15;
+      const cx = event.clientX - svgRect.left;
+      zoomXBy(factor, cx);
+      return;
+    }
 
     // ── イベントエリア上のホイール → イベントスクロール ──
     if (mouseY < evAreaH && !event.shiftKey) {
@@ -486,7 +497,7 @@ function buildChart() {
 
     const minY = Math.min(0, curChartH - curTotalDataH * newT.k);
     const clampedY = Math.max(minY, Math.min(0, newT.y));
-    const minX = Math.min(0, curChartW - curChartW * newT.k);
+    const minX = Math.min(0, curChartW - curChartW * newT.k * kXExtra);
     const clampedX = Math.max(minX, Math.min(0, newT.x));
     if (clampedY !== newT.y || clampedX !== newT.x) {
       newT = d3.zoomIdentity.scale(newT.k).translate(clampedX / newT.k, clampedY / newT.k);
@@ -520,10 +531,52 @@ function buildChart() {
 
 }
 
-/* Apply transform to the content group */
+/* ========================================================
+   HORIZONTAL-ONLY ZOOM
+   cx: SVG左端からのスクリーンX座標（ズームの中心）
+   ======================================================== */
+function zoomXBy(factor, cx) {
+  const oldKX = kXExtra;
+  const newKX = Math.max(0.1, Math.min(50, oldKX * factor));
+
+  // cx を固定点として curT.x を調整
+  // 変換前: px = NAME_W + curT.x + xScale(data) * curT.k * oldKX
+  // 変換後: px = NAME_W + newTx + xScale(data) * curT.k * newKX
+  // → newTx = curT.x + (cx - NAME_W) * (1 - newKX / oldKX)
+  const chartX = cx - NAME_W;
+  const newTx  = curT.x + chartX * (1 - newKX / oldKX);
+
+  // 横方向クランプ
+  const minX      = Math.min(0, curChartW - curChartW * curT.k * newKX);
+  const clampedX  = Math.max(minX, Math.min(0, newTx));
+
+  kXExtra = newKX;
+
+  // curT.x のみ更新（k と y は維持）
+  curT = d3.zoomIdentity.translate(clampedX / curT.k, curT.y / curT.k).scale(curT.k);
+  svgEl.call(zoomBehavior.transform, curT);
+
+  // バーテキストの横伸びを補正（data-x を元に x と transform を更新）
+  svgEl.selectAll('.bar-text').each(function() {
+    const el = d3.select(this);
+    const dx = +el.attr('data-x');
+    el.attr('x', dx * kXExtra)
+      .attr('transform', `scale(${1 / kXExtra},1)`);
+  });
+  // 生年・没年ドットの横伸びを補正（data-cx を元に cx と transform を更新）
+  svgEl.selectAll('.bar-dot').each(function() {
+    const el = d3.select(this);
+    const dcx = +el.attr('data-cx');
+    el.attr('cx', dcx * kXExtra)
+      .attr('transform', `scale(${1 / kXExtra},1)`);
+  });
+}
+
+/* Apply transform to the content group
+   X軸は t.k * kXExtra でスケール、Y軸は t.k のみ（横ズーム対応） */
 function applyContentTransform(sel, t) {
   sel.attr('transform',
-    `translate(${NAME_W + t.x},${HDR_H + t.y}) scale(${t.k})`
+    `translate(${NAME_W + t.x},${HDR_H + t.y}) scale(${t.k * kXExtra},${t.k})`
   );
 }
 
@@ -595,46 +648,67 @@ function drawBars(cg, ds, yMin, yMax, chartW, chartH) {
     }
 
     /* Birth dot (hollow if uncertain) */
-    cg.append('circle').attr('cx', x1).attr('cy', cy).attr('r', 3)
+    cg.append('circle')
+      .attr('class', 'bar-dot').attr('data-cx', x1)
+      .attr('cx', x1 * kXExtra).attr('cy', cy).attr('r', 3)
+      .attr('transform', `scale(${1 / kXExtra},1)`)
       .attr('fill', p.birthUncertain ? 'none' : color)
       .attr('stroke', color).attr('stroke-width', p.birthUncertain ? 1.5 : 0);
     /* Death dot (hollow if uncertain) */
-    cg.append('circle').attr('cx', x2).attr('cy', cy).attr('r', 3)
+    cg.append('circle')
+      .attr('class', 'bar-dot').attr('data-cx', x2)
+      .attr('cx', x2 * kXExtra).attr('cy', cy).attr('r', 3)
+      .attr('transform', `scale(${1 / kXExtra},1)`)
       .attr('fill', '#fff').attr('stroke', color).attr('stroke-width', 1.5);
 
     /* ? marks for uncertain birth / death */
     if (p.birthUncertain) {
+      const _x = x1 - 3;
       cg.append('text')
-        .attr('x', x1 - 3).attr('y', cy + 3).attr('text-anchor', 'end')
+        .attr('class', 'bar-text').attr('data-x', _x)
+        .attr('x', _x * kXExtra).attr('y', cy + 3).attr('text-anchor', 'end')
+        .attr('transform', `scale(${1 / kXExtra},1)`)
         .attr('fill', 'rgba(255,220,50,0.95)').attr('font-size', 9).attr('font-weight', 700)
         .attr('pointer-events', 'none').text('?');
     }
     if (p.deathUncertain) {
+      const _x = x2 + 3;
       cg.append('text')
-        .attr('x', x2 + 3).attr('y', cy + 3).attr('text-anchor', 'start')
+        .attr('class', 'bar-text').attr('data-x', _x)
+        .attr('x', _x * kXExtra).attr('y', cy + 3).attr('text-anchor', 'start')
+        .attr('transform', `scale(${1 / kXExtra},1)`)
         .attr('fill', 'rgba(255,220,50,0.95)').attr('font-size', 9).attr('font-weight', 700)
         .attr('pointer-events', 'none').text('?');
     }
 
     /* Year labels on bar */
     if (barW > 18) {
+      const _x = x1 + 3;
       cg.append('text')
-        .attr('x', x1 + 3).attr('y', cy + 3)
+        .attr('class', 'bar-text').attr('data-x', _x)
+        .attr('x', _x * kXExtra).attr('y', cy + 3)
+        .attr('transform', `scale(${1 / kXExtra},1)`)
         .attr('fill', 'rgba(255,255,255,0.45)').attr('font-size', 7)
         .attr('pointer-events', 'none')
         .text(p.birthUncertain ? '?' : fmtYear(p.birth));
     }
     if (barW > 28) {
+      const _x = x2 - 3;
       cg.append('text')
-        .attr('x', x2 - 3).attr('y', cy + 3).attr('text-anchor', 'end')
+        .attr('class', 'bar-text').attr('data-x', _x)
+        .attr('x', _x * kXExtra).attr('y', cy + 3).attr('text-anchor', 'end')
+        .attr('transform', `scale(${1 / kXExtra},1)`)
         .attr('fill', 'rgba(255,255,255,0.45)').attr('font-size', 7)
         .attr('pointer-events', 'none')
         .text(p.deathUncertain ? '?' : fmtYear(p.death));
     }
     /* Role label inside bar */
     if (p.title && barW > 55) {
+      const _x = (x1 + x2) / 2;
       cg.append('text')
-        .attr('x', (x1 + x2) / 2).attr('y', cy + 3).attr('text-anchor', 'middle')
+        .attr('class', 'bar-text').attr('data-x', _x)
+        .attr('x', _x * kXExtra).attr('y', cy + 3).attr('text-anchor', 'middle')
+        .attr('transform', `scale(${1 / kXExtra},1)`)
         .attr('fill', 'rgba(255,255,255,0.7)').attr('font-size', 8)
         .attr('pointer-events', 'none').text(p.title);
     }
@@ -658,9 +732,12 @@ function drawBars(cg, ds, yMin, yMax, chartW, chartH) {
         .attr('pointer-events', 'none');
       /* Role label inside serve bar (dark text for contrast) */
       if (sw > 30 && sv.role) {
+        const _x = (sx1 + sx2) / 2;
         cg.append('text')
-          .attr('x', (sx1 + sx2) / 2).attr('y', cy + 3)
+          .attr('class', 'bar-text').attr('data-x', _x)
+          .attr('x', _x * kXExtra).attr('y', cy + 3)
           .attr('text-anchor', 'middle')
+          .attr('transform', `scale(${1 / kXExtra},1)`)
           .attr('fill', 'rgba(0,0,0,0.72)').attr('font-size', 7).attr('font-weight', 700)
           .attr('pointer-events', 'none').text(sv.role);
       }
@@ -802,7 +879,7 @@ function drawAxisPanel() {
 
   // Compute screen x for each event (use all events for correct lane assignment)
   const evItemsAll = ds.events.map(ev => {
-    const sx   = NAME_W + t.x + xScale(ev.year) * t.k;
+    const sx   = NAME_W + t.x + xScale(ev.year) * t.k * kXExtra;
     const text = fmtYear(ev.year) + ' ' + ev.name;
     return { ev, sx, text, w: evLabelW(text, evFontSize) };
   });
@@ -882,13 +959,13 @@ function drawAxisPanel() {
   }
 
   /* ── Year ticks (bottom strip of header) ── */
-  const x0 = xScale.invert(-t.x / t.k);
-  const x1 = xScale.invert((chartW - t.x) / t.k);
+  const x0 = xScale.invert(-t.x / (t.k * kXExtra));
+  const x1 = xScale.invert((chartW - t.x) / (t.k * kXExtra));
   const span = x1 - x0;
   const step = span > 500 ? 100 : span > 200 ? 50 : span > 80 ? 20 : span > 35 ? 10 : 5;
 
   for (let yr = Math.ceil(x0 / step) * step; yr <= x1; yr += step) {
-    const sx = NAME_W + t.x + xScale(yr) * t.k;
+    const sx = NAME_W + t.x + xScale(yr) * t.k * kXExtra;
     if (sx < NAME_W || sx > W) continue;
     axisG.append('line')
       .attr('x1', sx).attr('y1', HDR_H)
@@ -904,7 +981,7 @@ function drawAxisPanel() {
   /* ── Selected year: vertical line through header + chart ── */
   if (selectedYear !== null) {
     const H  = +svgEl.attr('height');
-    const sx = NAME_W + t.x + xScale(selectedYear) * t.k;
+    const sx = NAME_W + t.x + xScale(selectedYear) * t.k * kXExtra;
     if (sx >= NAME_W && sx <= W) {
       // Line through chart body
       axisG.append('line')
@@ -1013,8 +1090,12 @@ document.addEventListener('keydown', e => {
   if (e.key === '+' || e.key === '=') zoomIn();
   if (e.key === '-') zoomOut();
   if (e.key === '0') resetZoom();
-  if (e.key === 'ArrowRight' && selectedYear !== null) selectYear(selectedYear + 1);
-  if (e.key === 'ArrowLeft'  && selectedYear !== null) selectYear(selectedYear - 1);
+  // Shift+左右矢印 → 横軸のみ拡大縮小（ビューポート中央基準）
+  if (e.key === 'ArrowRight' && e.shiftKey) { zoomXBy(1.2, NAME_W + curChartW / 2); return; }
+  if (e.key === 'ArrowLeft'  && e.shiftKey) { zoomXBy(1 / 1.2, NAME_W + curChartW / 2); return; }
+  // 左右矢印（Shiftなし）→ 選択年を1年移動
+  if (e.key === 'ArrowRight' && !e.shiftKey && selectedYear !== null) selectYear(selectedYear + 1);
+  if (e.key === 'ArrowLeft'  && !e.shiftKey && selectedYear !== null) selectYear(selectedYear - 1);
 });
 
 window.addEventListener('resize', buildChart);
