@@ -1083,6 +1083,50 @@ function closeModal() {
   document.getElementById('modal-bg').classList.add('hidden');
 }
 
+/* ── ヘルプモーダル ── */
+function openHelpModal() {
+  document.getElementById('modal-body').innerHTML = `
+    <div class="help-modal">
+      <div class="help-section">
+        <div class="help-section-title">🖱️ マウス操作</div>
+        <table class="help-table">
+          <tr><td>ホイール</td><td>縦スクロール</td></tr>
+          <tr><td>Shift + ホイール</td><td>横スクロール</td></tr>
+          <tr><td>Ctrl + ホイール</td><td>横軸のみ拡大縮小</td></tr>
+          <tr><td>ピンチ</td><td>全体ズーム</td></tr>
+          <tr><td>ドラッグ</td><td>パン（移動）</td></tr>
+          <tr><td>バーをクリック</td><td>人物の詳細をホバー表示</td></tr>
+          <tr><td>イベントラベルをクリック</td><td>その年を選択し年齢パネルを開く</td></tr>
+        </table>
+      </div>
+      <div class="help-section">
+        <div class="help-section-title">⌨️ キーボードショートカット</div>
+        <table class="help-table">
+          <tr><td><kbd>+</kbd> / <kbd>=</kbd></td><td>拡大</td></tr>
+          <tr><td><kbd>-</kbd></td><td>縮小</td></tr>
+          <tr><td><kbd>0</kbd></td><td>ズームリセット</td></tr>
+          <tr><td><kbd>Shift</kbd> + <kbd>→</kbd></td><td>横軸のみ拡大</td></tr>
+          <tr><td><kbd>Shift</kbd> + <kbd>←</kbd></td><td>横軸のみ縮小</td></tr>
+          <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>選択年を1年移動（画面端で自動スクロール）</td></tr>
+          <tr><td><kbd>↑</kbd> <kbd>↓</kbd></td><td>縦スクロール（3行分）</td></tr>
+          <tr><td><kbd>H</kbd></td><td>このヘルプを表示</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>パネル・モーダルを閉じる</td></tr>
+        </table>
+      </div>
+      <div class="help-section">
+        <div class="help-section-title">📋 データセット</div>
+        <table class="help-table">
+          <tr><td>URLハッシュ</td><td><code>index.html#kamakura</code> でデータセットを直接指定</td></tr>
+          <tr><td>カテゴリフィルター</td><td>サイドバー下部のチェックボックスで絞り込み</td></tr>
+          <tr><td>並び替え</td><td>ツールバーの「生年順 / カテゴリ別」で切り替え</td></tr>
+        </table>
+      </div>
+    </div>`;
+  document.getElementById('modal-foot').innerHTML =
+    `<button class="tbtn" onclick="closeModal()">閉じる</button>`;
+  document.getElementById('modal-bg').classList.remove('hidden');
+}
+
 /* ========================================================
    SCROLL YEAR INTO VIEW
    選択年の縦線が画面端に近づいたとき、自動スクロールして追従させる
@@ -1115,6 +1159,7 @@ function scrollYearIntoView(year) {
 document.addEventListener('keydown', e => {
   if (e.target.matches('input, textarea')) return;
   if (e.key === 'Escape') closeModal();
+  if (e.key === 'h' || e.key === 'H') { openHelpModal(); return; }
   if (e.key === '+' || e.key === '=') zoomIn();
   if (e.key === '-') zoomOut();
   if (e.key === '0') resetZoom();

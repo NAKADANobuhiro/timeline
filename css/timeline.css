@@ -395,6 +395,22 @@ body.light .pill::after { left: 19px; }
 .form-grp textarea { height: 170px; font-family: monospace; font-size: 11px; resize: vertical; }
 .hint { font-size: 10px; color: var(--text-muted); line-height: 1.6; }
 
+/* ── Help modal ── */
+.help-modal { display: flex; flex-direction: column; gap: 18px; }
+.help-section-title { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.help-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.help-table tr { border-bottom: 1px solid var(--border-lite); }
+.help-table tr:last-child { border-bottom: none; }
+.help-table td { padding: 5px 4px; color: var(--text-sub); vertical-align: middle; }
+.help-table td:first-child { white-space: nowrap; color: var(--text); width: 44%; }
+kbd {
+  display: inline-block; padding: 1px 6px; border-radius: 4px;
+  background: var(--card); border: 1px solid var(--border);
+  font-size: 10px; font-family: monospace; color: var(--text);
+  box-shadow: 0 1px 0 var(--border);
+}
+.help-table code { font-size: 10px; color: var(--text-muted); font-family: monospace; }
+
 /* ── Mobile-only helpers ──────────────────── */
 .mobile-only { display: none !important; }
 
