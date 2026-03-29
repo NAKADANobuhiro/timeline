@@ -97,21 +97,20 @@ body {
 .h1-text { font-size: 15px; color: var(--text); white-space: nowrap; line-height: 1.3; }
 .h1-text span { font-size: 10px; color: var(--text-muted); display: block; margin-top: 2px; }
 
-.era-list { flex: 1; overflow-y: auto; padding: 8px; }
+.era-list { flex: 1; overflow-y: auto; padding: 4px 6px; }
 .era-item {
-  padding: 9px 11px; margin: 3px 0; border-radius: 7px; cursor: pointer;
+  padding: 5px 9px; margin: 1px 0; border-radius: 6px; cursor: pointer;
   transition: all 0.15s; border: 1px solid transparent;
 }
 .era-item:hover  { background: var(--card); }
 .era-item.active { background: var(--card); border-color: var(--accent); }
-.era-item .era-name   { font-size: 13px; font-weight: 600; white-space: nowrap; color: var(--text); }
-.era-item .era-period { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
-.era-item .era-count  { font-size: 10px; color: var(--accent); margin-top: 1px; }
+.era-item .era-name   { font-size: 12px; font-weight: 600; white-space: nowrap; color: var(--text); }
+.era-item .era-period { font-size: 10px; color: var(--text-muted); margin-top: 0; }
 
 /* Filters */
-.filter-section { padding: 10px 12px; border-top: 1px solid var(--border); }
-.filter-section h3 { font-size: 10px; color: var(--text-muted); margin-bottom: 6px; }
-.filter-check { display: flex; align-items: center; gap: 5px; margin: 3px 0; font-size: 11px; cursor: pointer; color: var(--text-sub); }
+.filter-section { padding: 6px 10px; border-top: 1px solid var(--border); }
+.filter-section h3 { font-size: 10px; color: var(--text-muted); margin-bottom: 4px; }
+.filter-check { display: flex; align-items: center; gap: 5px; margin: 2px 0; font-size: 11px; cursor: pointer; color: var(--text-sub); }
 .filter-check input { accent-color: var(--accent); cursor: pointer; }
 .filter-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
 

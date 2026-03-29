@@ -192,9 +192,8 @@ function renderSidebar() {
     el.className = 'era-item' + (key === currentKey ? ' active' : '');
     el.innerHTML =
       `<div class="era-name">${d.name}</div>` +
-      `<div class="era-period">${d.period}</div>` +
-      `<div class="era-count">${d.persons.length}人</div>`;
-    el.onclick = () => { currentKey = key; visibleCats = {}; renderSidebar(); loadDataset(key); };
+      `<div class="era-period">${d.period}</div>`;
+    el.onclick = () => { visibleCats = {}; loadDataset(key); };
     list.appendChild(el);
   });
 }
@@ -245,6 +244,9 @@ function toggleSidebar() {
    ======================================================== */
 function loadDataset(key) {
   currentKey = key;
+  // URL ハッシュを更新（ブックマーク・共有用）
+  if (location.hash !== '#' + key) location.hash = '#' + key;
+  renderSidebar();   // サイドバーの選択状態を更新
   const ds = DATASETS[key];
   document.getElementById('t-title').textContent = ds.name;
   // Reset year selection when switching datasets
@@ -1145,9 +1147,17 @@ document.addEventListener('keydown', e => {
 
 window.addEventListener('resize', buildChart);
 
+// ブラウザの戻る / 進む、または直接 URL を開いた時にデータセットを切り替える
+window.addEventListener('hashchange', () => {
+  const key = location.hash.slice(1);
+  if (key && DATASETS[key] && key !== currentKey) loadDataset(key);
+});
+
 /* ========================================================
    BOOT
    ======================================================== */
 applyTheme(currentTheme);   // apply saved theme (dark/light) before first render
 renderSidebar();
-loadDataset(currentKey);
+// URL ハッシュにデータセットキーが指定されていればそちらを優先
+const _initKey = location.hash.slice(1);
+loadDataset((_initKey && DATASETS[_initKey]) ? _initKey : currentKey);
