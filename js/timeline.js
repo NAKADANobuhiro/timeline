@@ -313,7 +313,7 @@ function buildChart() {
 
   // Store for scroll clamping
   curChartH     = chartH;
-  curTotalDataH = curPersons.length * ROW_H;
+  curTotalDataH = curPersons.length * ROW_H + 100; // 下端の余白（ホバーが切れないように）
   curChartW     = chartW;
 
   /* ── SVG ── */
