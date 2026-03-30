@@ -11,15 +11,11 @@ DATASETS.radio_saikyo = {
     '週末・深夜帯': '#408500',
   },
   persons: [
-
-    /* ── 平日深夜帯 ── */
     {
       name: 'BATTLE TALK RADIO アクセス',
       title: '小島慶子ほか',
       birth: 1998, death: 2010, cat: '平日夜帯',
     },
-
-    /* ── 平日昼帯 ── */
     {
       name: 'ストリーム',
       title: '小西克哉・松本ともこ',
@@ -47,8 +43,6 @@ DATASETS.radio_saikyo = {
       birth: 2016, death: 2036, cat: '平日昼帯',
       deathUncertain: true,
     },
-
-    /* ── 平日夕方帯 ── */
     {
       name: '荒川強啓 デイ・キャッチ!',
       title: '荒川強啓',
@@ -75,8 +69,6 @@ DATASETS.radio_saikyo = {
       birth: 2022, death: 2036, cat: '平日夜帯',
       deathUncertain: true,
     },
-
-    /* ── 週末・深夜帯 ── */
     {
       name: 'ウィークエンドシャッフル',
       title: '宇多丸(RHYMESTER)',

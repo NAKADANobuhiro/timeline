@@ -245,7 +245,10 @@ function toggleSidebar() {
 function loadDataset(key) {
   currentKey = key;
   // URL ハッシュを更新（ブックマーク・共有用）
-  if (location.hash !== '#' + key) location.hash = '#' + key;
+  // file:// プロトコルでは location.hash 代入が Chrome にブロックされることがあるため try-catch で保護
+  try {
+    if (location.hash !== '#' + key) history.replaceState(null, '', '#' + key);
+  } catch (e) { /* file:// 環境では無視 */ }
   renderSidebar();   // サイドバーの選択状態を更新
   const ds = DATASETS[key];
   document.getElementById('t-title').textContent = ds.name;
@@ -1194,8 +1197,10 @@ window.addEventListener('resize', buildChart);
 
 // ブラウザの戻る / 進む、または直接 URL を開いた時にデータセットを切り替える
 window.addEventListener('hashchange', () => {
-  const key = location.hash.slice(1);
-  if (key && DATASETS[key] && key !== currentKey) loadDataset(key);
+  try {
+    const key = location.hash.slice(1);
+    if (key && DATASETS[key] && key !== currentKey) loadDataset(key);
+  } catch (e) { /* file:// 環境では無視 */ }
 });
 
 /* ========================================================
@@ -1204,5 +1209,7 @@ window.addEventListener('hashchange', () => {
 applyTheme(currentTheme);   // apply saved theme (dark/light) before first render
 renderSidebar();
 // URL ハッシュにデータセットキーが指定されていればそちらを優先
-const _initKey = location.hash.slice(1);
+// file:// プロトコルでは location.hash が空になる場合があるため try-catch で保護
+let _initKey = '';
+try { _initKey = location.hash.slice(1); } catch (e) {}
 loadDataset((_initKey && DATASETS[_initKey]) ? _initKey : currentKey);
