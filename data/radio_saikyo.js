@@ -7,6 +7,9 @@ DATASETS.radio_saikyo = {
     lifespan: '放送年数',       // 「享年」の代わり
     agePanel: '番組の放送年数', // 年齢パネルのサブタイトル
   },
+    categoryLabels: {
+    '人物': { age: '歳', lifespan: '享年' },
+  },
   period: '1998〜2026年',
   bce: false,
   categories: {

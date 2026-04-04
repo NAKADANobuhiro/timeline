@@ -76,9 +76,18 @@ let kXExtra     = 1.0;          // 横軸のみの追加拡大率（横ズーム
 
 /* ── データセット固有の用語ラベル ──────────────────────────────
    各データセットで labels: { age, lifespan, agePanel } を定義すると
-   デフォルト（歳 / 享年 / その年の年齢）を上書きできる          */
-function getLabel(key, defaultVal) {
+   デフォルト（歳 / 享年 / その年の年齢）を上書きできる。
+   categoryLabels: { 'カテゴリ名': { age, lifespan } } を定義すると
+   特定カテゴリだけラベルを上書き（または元に戻す）できる。
+   優先順位: categoryLabels[cat] > labels > defaultVal              */
+function getLabel(key, defaultVal, cat) {
   const ds = DATASETS[currentKey];
+  // カテゴリ単位の上書きを最優先
+  if (cat != null && ds && ds.categoryLabels) {
+    const cv = ds.categoryLabels[cat] && ds.categoryLabels[cat][key];
+    if (cv != null) return cv;
+  }
+  // データセット全体のラベル
   const v = ds && ds.labels && ds.labels[key];
   return v != null ? v : defaultVal;
 }
@@ -168,7 +177,7 @@ function renderAgePanel() {
     item.innerHTML =
       `<span class="age-dot" style="background:${color}"></span>` +
       `<span class="age-name">${p.name}${roleSuffix}</span>` +
-      `<span class="age-val">${age}${getLabel('age', '歳')}</span>`;
+      `<span class="age-val">${age}${getLabel('age', '歳', p.cat)}</span>`;
     listEl.appendChild(item);
   });
 }
@@ -509,12 +518,11 @@ function buildChart() {
     const svgRect = svgEl.node().getBoundingClientRect();
     const mouseY  = event.clientY - svgRect.top;
 
-    // ── Ctrl+ホイール → 横軸のみ拡大縮小 ──
+    // ── Ctrl+ホイール → フルズーム（ピンチ相当）──
     if (event.ctrlKey) {
       const delta  = event.deltaMode === 1 ? event.deltaY * ROW_H : event.deltaY;
       const factor = delta > 0 ? 1 / 1.15 : 1.15;
-      const cx = event.clientX - svgRect.left;
-      zoomXBy(factor, cx);
+      svgEl.call(zoomBehavior.scaleBy, factor);
       return;
     }
 
@@ -799,7 +807,7 @@ function drawBars(cg, ds, yMin, yMax, chartW, chartH) {
           `<div class="tt-name">${p.name}${p.fictional ? ' <span class="tt-fic">(架空)</span>' : ''}</div>` +
           (p.title ? `<div class="tt-role">${p.title}</div>` : '') +
           `<div class="tt-years">${birthStr} 〜 ${deathStr}</div>` +
-          `<div class="tt-age">${getLabel('lifespan', '享年')} ${p.death - p.birth}${getLabel('age', '歳')}${ageNote}</div>` +
+          `<div class="tt-age">${getLabel('lifespan', '享年', p.cat)} ${p.death - p.birth}${getLabel('age', '歳', p.cat)}${ageNote}</div>` +
           serveLines;
         ttEl.classList.add('show');
       })
@@ -1064,9 +1072,12 @@ function drawAxisPanel() {
 /* ========================================================
    ZOOM CONTROLS
    ======================================================== */
-function zoomIn()    { svgEl.transition().duration(280).call(zoomBehavior.scaleBy, 1.6); }
-function zoomOut()   { svgEl.transition().duration(280).call(zoomBehavior.scaleBy, 0.625); }
-function resetZoom() { svgEl.transition().duration(350).call(zoomBehavior.transform, d3.zoomIdentity); }
+function zoomIn()    { zoomXBy(1.6,   NAME_W + curChartW / 2); }  // 横軸のみ拡大
+function zoomOut()   { zoomXBy(0.625, NAME_W + curChartW / 2); } // 横軸のみ縮小
+function resetZoom() {
+  kXExtra = 1.0;                     // 横軸の追加拡大率もリセット
+  svgEl.transition().duration(350).call(zoomBehavior.transform, d3.zoomIdentity);
+}
 
 /* ========================================================
    ADD DATASET MODAL
@@ -1132,7 +1143,7 @@ function openHelpModal() {
         <table class="help-table">
           <tr><td>ホイール</td><td>縦スクロール</td></tr>
           <tr><td>Shift + ホイール</td><td>横スクロール</td></tr>
-          <tr><td>Ctrl + ホイール</td><td>横軸のみ拡大縮小</td></tr>
+          <tr><td>Ctrl + ホイール</td><td>全体ズーム（ピンチ相当）</td></tr>
           <tr><td>ピンチ</td><td>全体ズーム</td></tr>
           <tr><td>ドラッグ</td><td>パン（移動）</td></tr>
           <tr><td>バーをクリック</td><td>人物の詳細をホバー表示</td></tr>
@@ -1142,8 +1153,8 @@ function openHelpModal() {
       <div class="help-section">
         <div class="help-section-title">⌨️ キーボードショートカット</div>
         <table class="help-table">
-          <tr><td><kbd>+</kbd> / <kbd>=</kbd></td><td>拡大</td></tr>
-          <tr><td><kbd>-</kbd></td><td>縮小</td></tr>
+          <tr><td><kbd>+</kbd> / <kbd>=</kbd></td><td>横軸のみ拡大</td></tr>
+          <tr><td><kbd>-</kbd></td><td>横軸のみ縮小</td></tr>
           <tr><td><kbd>0</kbd></td><td>ズームリセット</td></tr>
           <tr><td><kbd>Shift</kbd> + <kbd>→</kbd></td><td>横軸のみ拡大</td></tr>
           <tr><td><kbd>Shift</kbd> + <kbd>←</kbd></td><td>横軸のみ縮小</td></tr>
