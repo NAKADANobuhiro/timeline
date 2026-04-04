@@ -2,6 +2,11 @@
 /* 放送期間は一部推定を含みます */
 DATASETS.radio_saikyo = {
   name: 'ラジオ最強説',
+    labels: {
+    age:      '年目',           // 「歳」の代わり
+    lifespan: '放送年数',       // 「享年」の代わり
+    agePanel: 'その番組の放送年数', // 年齢パネルのサブタイトル
+  },
   period: '1998〜2026年',
   bce: false,
   categories: {
@@ -36,6 +41,11 @@ DATASETS.radio_saikyo = {
       title: '石山蓮華',
       birth: 2023, death: 2036, cat: '平日昼帯',
       deathUncertain: true,
+    },
+    {
+      name: '大沢悠里のゆうゆうワイド',
+      title: '大沢悠里',
+      birth: 1986, death: 2016, cat: '平日昼帯',
     },
     {
       name: '生活は踊る',

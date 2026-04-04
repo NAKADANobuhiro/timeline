@@ -74,6 +74,15 @@ let evTotalLanes = 0;           // 現在のイベントレーン総数（drawAx
 let evHitItems  = [];           // イベントラベルのヒット範囲（drawAxisPanel が設定）
 let kXExtra     = 1.0;          // 横軸のみの追加拡大率（横ズーム機能）
 
+/* ── データセット固有の用語ラベル ──────────────────────────────
+   各データセットで labels: { age, lifespan, agePanel } を定義すると
+   デフォルト（歳 / 享年 / その年の年齢）を上書きできる          */
+function getLabel(key, defaultVal) {
+  const ds = DATASETS[currentKey];
+  const v = ds && ds.labels && ds.labels[key];
+  return v != null ? v : defaultVal;
+}
+
 function setSort(mode) {
   sortMode = mode;
   document.getElementById('sort-birth').classList.toggle('seg-active', mode === 'birth');
@@ -159,7 +168,7 @@ function renderAgePanel() {
     item.innerHTML =
       `<span class="age-dot" style="background:${color}"></span>` +
       `<span class="age-name">${p.name}${roleSuffix}</span>` +
-      `<span class="age-val">${age}歳</span>`;
+      `<span class="age-val">${age}${getLabel('age', '歳')}</span>`;
     listEl.appendChild(item);
   });
 }
@@ -252,6 +261,9 @@ function loadDataset(key) {
   renderSidebar();   // サイドバーの選択状態を更新
   const ds = DATASETS[key];
   document.getElementById('t-title').textContent = ds.name;
+  // 年齢パネルのサブタイトルをデータセットの用語に合わせて更新
+  document.getElementById('age-panel-subtitle').textContent =
+    getLabel('agePanel', 'その年の年齢');
   // Reset year selection when switching datasets
   selectedYear = null;
   document.getElementById('age-panel').classList.remove('open');
@@ -762,7 +774,7 @@ function drawBars(cg, ds, yMin, yMax, chartW, chartH) {
           `<div class="tt-name">${p.name}${p.fictional ? ' <span class="tt-fic">(架空)</span>' : ''}</div>` +
           (p.title ? `<div class="tt-role">${p.title}</div>` : '') +
           `<div class="tt-years">${birthStr} 〜 ${deathStr}</div>` +
-          `<div class="tt-age">享年 ${p.death - p.birth}歳${ageNote}</div>` +
+          `<div class="tt-age">${getLabel('lifespan', '享年')} ${p.death - p.birth}${getLabel('age', '歳')}${ageNote}</div>` +
           serveLines;
         ttEl.classList.add('show');
       })
