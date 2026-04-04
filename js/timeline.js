@@ -45,7 +45,7 @@ function computeHeaderHeight(ds, chartW) {
   return base + MAX_EV_LANES_VISIBLE * EV_LANE_H;
 }
 
-let currentTheme = localStorage.getItem('tl-theme') || 'dark';
+let currentTheme = localStorage.getItem('tl-theme') || 'light';
 
 function applyTheme(theme) {
   currentTheme = theme;
