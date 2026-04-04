@@ -209,7 +209,32 @@ function renderSidebar() {
 
 function renderFilters(ds) {
   const sec = document.getElementById('filters');
-  sec.innerHTML = '<h3>カテゴリ フィルター</h3>';
+  sec.innerHTML = '';
+
+  // ヘッダー行：ラベル ＋ すべて選択 / すべて解除
+  const head = document.createElement('div');
+  head.className = 'filter-head';
+  head.innerHTML =
+    '<h3>カテゴリ フィルター</h3>' +
+    '<div class="filter-btns">' +
+      '<button class="filter-btn" id="filter-all">すべて選択</button>' +
+      '<button class="filter-btn" id="filter-none">すべて解除</button>' +
+    '</div>';
+  sec.appendChild(head);
+
+  const cats = Object.keys(ds.categories);
+
+  head.querySelector('#filter-all').onclick = () => {
+    cats.forEach(c => { visibleCats[c] = true; });
+    renderFilters(ds);
+    buildChart();
+  };
+  head.querySelector('#filter-none').onclick = () => {
+    cats.forEach(c => { visibleCats[c] = false; });
+    renderFilters(ds);
+    buildChart();
+  };
+
   Object.entries(ds.categories).forEach(([cat, color]) => {
     if (visibleCats[cat] === undefined) visibleCats[cat] = true;
     const lbl = document.createElement('label');

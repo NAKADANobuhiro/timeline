@@ -109,7 +109,16 @@ body {
 
 /* Filters */
 .filter-section { padding: 6px 10px; border-top: 1px solid var(--border); }
-.filter-section h3 { font-size: 10px; color: var(--text-muted); margin-bottom: 4px; }
+.filter-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.filter-section h3 { font-size: 10px; color: var(--text-muted); margin: 0; }
+.filter-btns { display: flex; gap: 4px; }
+.filter-btn {
+  font-size: 9px; padding: 2px 6px; border-radius: 4px; cursor: pointer;
+  background: var(--card); color: var(--text-muted);
+  border: 1px solid var(--border-lite);
+  transition: background 0.12s, color 0.12s;
+}
+.filter-btn:hover { background: var(--card-hover); color: var(--text); }
 .filter-check { display: flex; align-items: center; gap: 5px; margin: 2px 0; font-size: 11px; cursor: pointer; color: var(--text-sub); }
 .filter-check input { accent-color: var(--accent); cursor: pointer; }
 .filter-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }

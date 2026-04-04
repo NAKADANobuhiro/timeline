@@ -43,6 +43,12 @@ DATASETS.radio_saikyo = {
       deathUncertain: true,
     },
     {
+      name: '金曜ワイドラジオTOKYO えんがわ',
+      title: '外山惠理、玉袋筋太郎',
+      birth: 2023, death: 2036, cat: '平日昼帯',
+      deathUncertain: true,
+    },
+    {
       name: '大沢悠里のゆうゆうワイド',
       title: '大沢悠里',
       birth: 1986, death: 2016, cat: '平日昼帯',
@@ -85,6 +91,11 @@ DATASETS.radio_saikyo = {
       birth: 2007, death: 2018, cat: '週末・深夜帯',
     },
     {
+      name: '久米宏 ラジオなんですけど',
+      title: '久米宏',
+      birth: 2006, death: 2020, cat: '週末・深夜帯',
+    },
+    {
       name: 'ザ・トップ5',
       title: '安東弘樹',
       birth: 2011, death: 2012, cat: '平日夜帯',
@@ -120,7 +131,11 @@ DATASETS.radio_saikyo = {
     { year: 2007, name: 'ウィークエンドシャッフル スタート' },
     { year: 2009, name: 'ストリーム 終了' },
     { year: 2015, name: 'ワイドFM開始' },
+    { year: 2016, name: '生活は踊る スタート' },
     { year: 2017, name: 'アフター6ジャンクション スタート' },
+    { year: 2020, name: '令和版 夜のミステリー' },
+    { year: 2024, name: '龍が如く8 発売' },
+    { year: 2023, name: '見えないわたしの、聞けば見えてくるラジオ' },
     { year: 2026, name: 'ラジオ最強説 出版' },
   ],
 };
