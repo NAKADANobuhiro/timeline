@@ -140,7 +140,6 @@ DATASETS.radio_saikyo = {
   events: [
     { year: 2004, name: '橋本吉史TBS入社' },
     { year: 2007, name: 'ウィークエンドシャッフル スタート' },
-    { year: 2009, name: 'ストリーム 終了' },
     { year: 2015, name: 'ワイドFM開始' },
     { year: 2016, name: '生活は踊る スタート' },
     { year: 2017, name: 'アフター6ジャンクション スタート' },
