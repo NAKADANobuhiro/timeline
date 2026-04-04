@@ -3,9 +3,9 @@
 DATASETS.radio_saikyo = {
   name: 'ラジオ最強説',
     labels: {
-    age:      '年目',           // 「歳」の代わり
+    age:      '周年',           // 「歳」の代わり
     lifespan: '放送年数',       // 「享年」の代わり
-    agePanel: 'その番組の放送年数', // 年齢パネルのサブタイトル
+    agePanel: '番組の放送年数', // 年齢パネルのサブタイトル
   },
   period: '1998〜2026年',
   bce: false,

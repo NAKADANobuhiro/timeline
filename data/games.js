@@ -1,5 +1,10 @@
 DATASETS.games = {
   name: 'ゲーム機の歴史',
+    labels: {
+    age:      '周年',           // 「歳」の代わり
+    lifespan: '現役期間',       // 「享年」の代わり
+    agePanel: '発売後年数', // 年齢パネルのサブタイトル
+  },
   period: '1977〜2030年',
   categories: {
     'アタリ':       '#C0392B',
