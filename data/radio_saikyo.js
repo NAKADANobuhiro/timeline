@@ -10,12 +10,19 @@ DATASETS.radio_saikyo = {
   period: '1998〜2026年',
   bce: false,
   categories: {
+    '人物':       '#a70008',
     '平日昼帯':     '#2980b9',
     '平日夕方帯':   '#a57100',
     '平日夜帯':   '#8800c3',
     '週末・深夜帯': '#408500',
   },
   persons: [
+    {
+      name: '橋本吉史 (ハシP)',
+      title: 'TBSラジオプロデューサー',
+      birth: 1979, death: 2079, cat: '人物',
+      deathUncertain: true,
+    },
     {
       name: 'BATTLE TALK RADIO アクセス',
       title: '小島慶子ほか',
@@ -39,13 +46,13 @@ DATASETS.radio_saikyo = {
     {
       name: 'こねくと',
       title: '石山蓮華',
-      birth: 2023, death: 2036, cat: '平日昼帯',
+      birth: 2023, death: 2060, cat: '平日昼帯',
       deathUncertain: true,
     },
     {
       name: '金曜ワイドラジオTOKYO えんがわ',
       title: '外山惠理、玉袋筋太郎',
-      birth: 2023, death: 2036, cat: '平日昼帯',
+      birth: 2023, death: 2060, cat: '平日昼帯',
       deathUncertain: true,
     },
     {
@@ -56,7 +63,7 @@ DATASETS.radio_saikyo = {
     {
       name: '生活は踊る',
       title: 'ジェーン・スー',
-      birth: 2016, death: 2036, cat: '平日昼帯',
+      birth: 2016, death: 2060, cat: '平日昼帯',
       deathUncertain: true,
     },
     {
@@ -82,7 +89,7 @@ DATASETS.radio_saikyo = {
     {
       name: 'アフター6ジャンクション2',
       title: '宇多丸(RHYMESTER)',
-      birth: 2022, death: 2036, cat: '平日夜帯',
+      birth: 2022, death: 2060, cat: '平日夜帯',
       deathUncertain: true,
     },
     {
@@ -128,13 +135,14 @@ DATASETS.radio_saikyo = {
   ],
 
   events: [
+    { year: 2004, name: '橋本吉史TBS入社' },
     { year: 2007, name: 'ウィークエンドシャッフル スタート' },
     { year: 2009, name: 'ストリーム 終了' },
     { year: 2015, name: 'ワイドFM開始' },
     { year: 2016, name: '生活は踊る スタート' },
     { year: 2017, name: 'アフター6ジャンクション スタート' },
     { year: 2020, name: '令和版 夜のミステリー' },
-    { year: 2024, name: '龍が如く8 発売' },
+    { year: 2024, name: '龍が如く8 発売、橋本吉史TBS退社' },
     { year: 2023, name: '見えないわたしの、聞けば見えてくるラジオ' },
     { year: 2026, name: 'ラジオ最強説 出版' },
   ],
