@@ -442,6 +442,7 @@ kbd {
 
   /* Age panel: bottom sheet instead of right panel */
   #chart-row { display: block; }   /* disable flex so panel doesn't shrink chart */
+  #chart-wrap { height: 100%; }    /* flex:1 が効かなくなるので明示的に高さを指定 */
 
   #age-panel {
     position: fixed;
