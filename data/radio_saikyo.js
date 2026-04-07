@@ -27,6 +27,18 @@ DATASETS.radio_saikyo = {
       deathUncertain: true,
     },
     {
+      name: '古川耕',
+      title: '放送作家、ライター、プロデューサー',
+      birth: 1973, death: 2073, cat: '人物',
+      deathUncertain: true,
+    },
+    {
+      name: '宇多丸',
+      title: 'utamaru(RHYMESTER)',
+      birth: 1969, death: 2069, cat: '人物',
+      deathUncertain: true,
+    },
+    {
       name: 'BATTLE TALK RADIO アクセス',
       title: '小島慶子ほか',
       birth: 1998, death: 2010, cat: '平日夜帯',
@@ -101,6 +113,17 @@ DATASETS.radio_saikyo = {
       birth: 2007, death: 2018, cat: '週末・深夜帯',
     },
     {
+      name: '伊集院光 日曜日の秘密基地',
+      title: '伊集院光',
+      birth: 2000, death: 2008, cat: '週末・深夜帯',
+    },
+    {
+      name: '爆笑問題の日曜サンデー',
+      title: '爆笑問題',
+      birth: 2008, death: 2060, cat: '週末・深夜帯',
+      deathUncertain: true,
+    },
+    {
       name: '久米宏 ラジオなんですけど',
       title: '久米宏',
       birth: 2006, death: 2020, cat: '週末・深夜帯',
@@ -140,6 +163,7 @@ DATASETS.radio_saikyo = {
   events: [
     { year: 2004, name: '橋本吉史TBS入社' },
     { year: 2007, name: 'ウィークエンドシャッフル スタート' },
+    { year: 2010, name: 'radiko配信の開始' },
     { year: 2015, name: 'ワイドFM開始' },
     { year: 2016, name: '生活は踊る スタート' },
     { year: 2017, name: 'アフター6ジャンクション スタート' },
