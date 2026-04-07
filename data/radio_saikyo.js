@@ -33,8 +33,8 @@ DATASETS.radio_saikyo = {
       deathUncertain: true,
     },
     {
-      name: '宇多丸',
-      title: 'utamaru(RHYMESTER)',
+      name: '宇多丸(RHYMESTER)',
+      title: 'ラッパー、ラジオパーソナリティ',
       birth: 1969, death: 2069, cat: '人物',
       deathUncertain: true,
     },
