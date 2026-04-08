@@ -18,6 +18,7 @@ DATASETS.radio_saikyo = {
     '平日夕方帯':   '#a57100',
     '平日夜帯':   '#8800c3',
     '週末・深夜帯': '#408500',
+    'ポッドキャスト': '#6b6b6bdc',
   },
   persons: [
     {
@@ -157,6 +158,11 @@ DATASETS.radio_saikyo = {
       name: '相談は踊る',
       title: 'ジェーン・スー',
       birth: 2014, death: 2016, cat: '週末・深夜帯',
+    },
+    {
+      name: 'OVER THE SUN',
+      title: 'ジェーン・スー, 堀井美香',
+      birth: 2020, death: 2060, cat: 'ポッドキャスト',
     },
   ],
 
