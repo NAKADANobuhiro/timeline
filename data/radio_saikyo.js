@@ -164,6 +164,11 @@ DATASETS.radio_saikyo = {
       title: 'ジェーン・スー, 堀井美香',
       birth: 2020, death: 2060, cat: 'ポッドキャスト',
     },
+    {
+      name: 'マイゲーム・マイライフ',
+      title: 'ライムスター宇多丸, 宇内梨沙',
+      birth: 2017, death: 2022, cat: 'ポッドキャスト',
+    },
   ],
 
   events: [
