@@ -163,12 +163,35 @@ DATASETS.radio_saikyo = {
       name: 'OVER THE SUN',
       title: 'ジェーン・スー, 堀井美香',
       birth: 2020, death: 2060, cat: 'ポッドキャスト',
+      deathUncertain: true,
     },
     {
       name: 'マイゲーム・マイライフ',
       title: 'ライムスター宇多丸, 宇内梨沙',
       birth: 2017, death: 2022, cat: 'ポッドキャスト',
     },
+    {
+      name: '見えないわたしの、聞けば見えてくるラジオ',
+      title: '石井健介',
+      birth: 2023, death: 2024, cat: 'ポッドキャスト',
+    },
+    {
+      name: '深夜特急 オン・ザ・ロード',
+      title: '斎藤工',
+      birth: 2023, death: 2024, cat: 'ポッドキャスト',
+    },
+    {
+      name: '異業種Pたちの人生エンタメ会議室',
+      title: '橋本吉史、RAM RIDER、渡辺範明',
+      birth: 2024, death: 2060, cat: 'ポッドキャスト',
+      deathUncertain: true,
+    },
+    {
+      name: 'ラジオ拡張計画',
+      title: '内田浩之, 橋本吉史, 石井玄',
+      birth: 2025, death: 2060, cat: 'ポッドキャスト',
+      deathUncertain: true,
+    },    
   ],
 
   events: [
