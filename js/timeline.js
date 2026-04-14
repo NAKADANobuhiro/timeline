@@ -294,7 +294,8 @@ function loadDataset(key) {
   } catch (e) { /* file:// 環境では無視 */ }
   renderSidebar();   // サイドバーの選択状態を更新
   const ds = DATASETS[key];
-  document.getElementById('t-title').textContent = ds.name;
+  document.getElementById('t-title').textContent = ds.name + ' / 歴史タイムライン';
+  document.title = ds.name + ' / 歴史タイムライン';
   // 年齢パネルのサブタイトルをデータセットの用語に合わせて更新
   document.getElementById('age-panel-subtitle').textContent =
     getLabel('agePanel', 'その年の年齢');
