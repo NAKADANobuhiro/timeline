@@ -108,7 +108,7 @@ body {
 .era-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 1px; }
 .era-item .era-period { font-size: 10px; color: var(--text-muted); }
 .era-item .era-count  { font-size: 10px; color: var(--text-muted); flex-shrink: 0; }
-.era-cats { display: flex; gap: 3px; margin-top: 4px; flex-wrap: wrap; }
+.era-cats { display: none; }
 .era-cat-dot { display: inline-block; width: 7px; height: 7px; border-radius: 2px; opacity: 0.75; }
 
 /* Filters */
