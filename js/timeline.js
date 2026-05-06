@@ -208,9 +208,19 @@ function renderSidebar() {
     const d  = DATASETS[key];
     const el = document.createElement('div');
     el.className = 'era-item' + (key === currentKey ? ' active' : '');
+
+    const catDots = Object.values(d.categories)
+      .map(color => `<span class="era-cat-dot" style="background:${color}"></span>`)
+      .join('');
+    const count = d.persons ? d.persons.length : 0;
+
     el.innerHTML =
       `<div class="era-name">${d.name}</div>` +
-      `<div class="era-period">${d.period}</div>`;
+      `<div class="era-meta">` +
+        `<span class="era-period">${d.period}</span>` +
+        `<span class="era-count">${count}人</span>` +
+      `</div>` +
+      `<div class="era-cats">${catDots}</div>`;
     el.onclick = () => { visibleCats = {}; loadDataset(key); };
     list.appendChild(el);
   });
