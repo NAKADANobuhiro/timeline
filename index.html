@@ -60,6 +60,7 @@
       <button class="tbtn" onclick="zoomOut()">－ 縮小</button>
       <button class="tbtn" onclick="zoomIn()">＋ 拡大</button>
       <button class="tbtn" onclick="resetZoom()">リセット</button>
+      <button class="tbtn" id="focus-btn" onclick="toggleFocus()" title="選択年の生存者のみ表示（F）">🎯 フォーカス</button>
 
       <!-- Hamburger button -->
       <button id="hamburger-btn" onclick="toggleMenu(event)" title="メニュー">
@@ -103,6 +104,11 @@
           <span class="hm-icon">↺</span>
           <span class="hm-label">ズームリセット</span>
           <span class="hm-badge">0</span>
+        </div>
+        <div class="hmenu-item" id="hm-focus" onclick="toggleFocus(); closeMenu()">
+          <span class="hm-icon">🎯</span>
+          <span class="hm-label">フォーカス（選択年の生存者のみ）</span>
+          <span class="hm-badge">F</span>
         </div>
         <!-- External links -->
         <div class="hmenu-sep"></div>

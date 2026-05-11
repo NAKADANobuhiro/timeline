@@ -66,6 +66,8 @@ function toggleTheme() {
 let currentKey  = 'kamakura';
 let visibleCats = {};
 let curPersons  = [];
+let spacePressed = false; // スペースキー押下中：選択年に生存している人物のみ表示
+let focusMode    = false; // フォーカスボタン トグル（持続的に絞り込み表示）
 let curT        = d3.zoomIdentity;
 let sortMode    = 'birth';      // 'birth' | 'category'
 let groupStarts = new Set();    // row indices that begin a new category group
@@ -117,6 +119,8 @@ function selectYear(year) {
   selectedYear = year;
   renderAgePanel();
   redrawFixed();   // refresh selection line
+  // フォーカスモード中は表示対象が変わるので即時に再描画
+  if (spacePressed || focusMode) { buildChart(); return; }
   // デスクトップ: パネルが右に展開してチャート幅が変わるので再描画
   // モバイル: ボトムシートなのでチャート幅は変わらない → スキップ
   if (!wasOpen && !isMobile()) setTimeout(buildChart, 240);
@@ -125,6 +129,12 @@ function selectYear(year) {
 function closeAgePanel() {
   selectedYear = null;
   document.getElementById('age-panel').classList.remove('open');
+  // フォーカスモードもオフにする（選択年がないと絞り込み対象がないため）
+  if (focusMode) {
+    focusMode = false;
+    const btn = document.getElementById('focus-btn');
+    if (btn) btn.classList.remove('tbtn-active');
+  }
   redrawFixed();
   // デスクトップのみ再描画
   if (!isMobile()) setTimeout(buildChart, 240);
@@ -312,6 +322,13 @@ function loadDataset(key) {
   // Reset year selection when switching datasets
   selectedYear = null;
   document.getElementById('age-panel').classList.remove('open');
+  // フォーカスモード状態もリセット
+  if (focusMode) {
+    focusMode = false;
+    const btn = document.getElementById('focus-btn');
+    if (btn) btn.classList.remove('tbtn-active');
+  }
+  spacePressed = false;
   renderFilters(ds);
   renderLegend(ds);
   // Reset zoom and event scroll when switching datasets
@@ -338,6 +355,11 @@ function buildChart() {
       }
       return a.birth - b.birth;
     });
+
+  // フォーカスモード（スペース押下中 or トグルON）：選択年に生存している人物のみ表示
+  if ((spacePressed || focusMode) && selectedYear !== null) {
+    curPersons = curPersons.filter(p => p.birth <= selectedYear && selectedYear <= p.death);
+  }
 
   // Compute category group boundaries (used by drawBars & drawNamesPanel)
   groupStarts = new Set();
@@ -1171,6 +1193,8 @@ function openHelpModal() {
           <tr><td><kbd>Shift</kbd> + <kbd>←</kbd></td><td>横軸のみ縮小</td></tr>
           <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>選択年を1年移動（画面端で自動スクロール）</td></tr>
           <tr><td><kbd>↑</kbd> <kbd>↓</kbd></td><td>縦スクロール（3行分）</td></tr>
+          <tr><td><kbd>Space</kbd></td><td>押している間、選択年に生存している人物のみ表示（フォーカスモード中はトグル解除）</td></tr>
+          <tr><td><kbd>F</kbd></td><td>フォーカスモード切り替え（持続的に絞り込み）</td></tr>
           <tr><td><kbd>H</kbd></td><td>このヘルプを表示</td></tr>
           <tr><td><kbd>Esc</kbd></td><td>パネル・モーダルを閉じる</td></tr>
         </table>
@@ -1220,6 +1244,17 @@ function scrollYearIntoView(year) {
    ======================================================== */
 document.addEventListener('keydown', e => {
   if (e.target.matches('input, textarea')) return;
+  // スペースキー：選択年に生存している人物のみ表示（押している間）
+  // フォーカスモード中はSpaceでトグル解除
+  if (e.key === ' ') {
+    e.preventDefault();
+    if (focusMode) { toggleFocus(); return; }
+    if (selectedYear === null) return;
+    if (!spacePressed) { spacePressed = true; buildChart(); }
+    return;
+  }
+  // Fキー：フォーカスモードのトグル
+  if (e.key === 'f' || e.key === 'F') { toggleFocus(); return; }
   if (e.key === 'Escape') closeModal();
   if (e.key === 'h' || e.key === 'H') { openHelpModal(); return; }
   if (e.key === '+' || e.key === '=') zoomIn();
@@ -1251,6 +1286,20 @@ document.addEventListener('keydown', e => {
     svgEl.call(zoomBehavior.transform, newT);
   }
 });
+
+document.addEventListener('keyup', e => {
+  if (e.target.matches('input, textarea')) return;
+  // フォーカスモード中はSpaceを離しても絞り込みを維持
+  if (e.key === ' ' && spacePressed && !focusMode) { spacePressed = false; buildChart(); }
+});
+
+/* フォーカスモード：選択年に生存している人物のみ表示（持続的） */
+function toggleFocus() {
+  focusMode = !focusMode;
+  const btn = document.getElementById('focus-btn');
+  if (btn) btn.classList.toggle('tbtn-active', focusMode);
+  buildChart();
+}
 
 window.addEventListener('resize', buildChart);
 
