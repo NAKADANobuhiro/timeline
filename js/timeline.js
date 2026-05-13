@@ -15,10 +15,74 @@ function cv(name) {
 }
 
 // Format a year value; supports BCE (negative years) when dataset has bce:true
+// Also supports monthly precision when dataset has monthly:true (decimal year → "YYYY年M月")
 function fmtYear(y) {
   const ds = DATASETS[currentKey];
   if (ds && ds.bce && y <= 0) return `前${Math.abs(y)}年`;
+  if (ds && ds.monthly) {
+    // Snap to nearest month to avoid floating-point artefacts
+    const total = Math.round(y * 12);
+    const yr    = Math.floor(total / 12);
+    const moIdx = total - yr * 12;            // 0..11
+    if (moIdx === 0) return `${yr}年`;
+    return `${yr}年${moIdx + 1}月`;
+  }
   return `${y}年`;
+}
+
+// Convert "YYYY-MM" string → decimal year (e.g. "1989-04" → 1989.25). Numbers pass through.
+function dateToDecY(v) {
+  if (typeof v !== 'string') return v;
+  const parts = v.split('-');
+  const yr = Number(parts[0]);
+  const mo = Number(parts[1] || 1);
+  return yr + (mo - 1) / 12;
+}
+
+// Normalize a monthly-mode dataset: convert all "YYYY-MM" string fields to decimal years.
+// Idempotent (sets ds._normalized = true on first run).
+function normalizeDataset(ds) {
+  if (!ds || ds._normalized) return;
+  ds._normalized = true;
+  if (!ds.monthly) return;
+  const c = dateToDecY;
+  (ds.persons || []).forEach(p => {
+    if (p.birth != null) p.birth = c(p.birth);
+    if (p.death != null) p.death = c(p.death);
+    const serves = Array.isArray(p.serve) ? p.serve : (p.serve ? [p.serve] : []);
+    serves.forEach(sv => {
+      if (sv.start != null) sv.start = c(sv.start);
+      if (sv.end   != null) sv.end   = c(sv.end);
+    });
+  });
+  (ds.events || []).forEach(ev => { if (ev.year != null) ev.year = c(ev.year); });
+  (ds.emperors || []).forEach(e => {
+    if (e.start != null) e.start = c(e.start);
+    if (e.end   != null) e.end   = c(e.end);
+  });
+  (ds.retired || []).forEach(e => {
+    if (e.start != null) e.start = c(e.start);
+    if (e.end   != null) e.end   = c(e.end);
+  });
+  (ds.rulers || []).forEach(r => {
+    (r.entries || []).forEach(e => {
+      if (e.start != null) e.start = c(e.start);
+      if (e.end   != null) e.end   = c(e.end);
+    });
+  });
+}
+
+// Move a decimal year by n months (avoids floating-point drift)
+function shiftMonths(dy, n) {
+  const total = Math.round(dy * 12) + n;
+  return total / 12;
+}
+
+// 年齢値の表示用フォーマット（月単位データセットでは小数1桁まで丸める）
+function fmtAgeVal(v) {
+  const ds = DATASETS[currentKey];
+  if (ds && ds.monthly) return (Math.round(v * 10) / 10).toString();
+  return v.toString();
 }
 
 // Estimate pixel width of an event label string
@@ -151,8 +215,9 @@ function renderAgePanel() {
 
   const ds = DATASETS[currentKey];
 
-  // Events occurring in the selected year
-  const events = ds.events.filter(ev => ev.year === selectedYear);
+  // Events occurring in the selected year (month-単位 ではトレランスを持たせる)
+  const tol = ds.monthly ? 1 / 24 : 0.0001;
+  const events = ds.events.filter(ev => Math.abs(ev.year - selectedYear) < tol);
   if (events.length > 0) {
     const evSec = document.createElement('div');
     evSec.className = 'age-ev-sec';
@@ -187,7 +252,7 @@ function renderAgePanel() {
     item.innerHTML =
       `<span class="age-dot" style="background:${color}"></span>` +
       `<span class="age-name">${p.name}${roleSuffix}</span>` +
-      `<span class="age-val">${age}${getLabel('age', '歳', p.cat)}</span>`;
+      `<span class="age-val">${fmtAgeVal(age)}${getLabel('age', '歳', p.cat)}</span>`;
     listEl.appendChild(item);
   });
 }
@@ -314,6 +379,8 @@ function loadDataset(key) {
   } catch (e) { /* file:// 環境では無視 */ }
   renderSidebar();   // サイドバーの選択状態を更新
   const ds = DATASETS[key];
+  // 月単位データセット（monthly: true）の場合、'YYYY-MM' 文字列を小数年へ変換
+  normalizeDataset(ds);
   document.getElementById('t-title').textContent = ds.name + ' / 歴史タイムライン';
   document.title = ds.name + ' / 歴史タイムライン';
   // 年齢パネルのサブタイトルをデータセットの用語に合わせて更新
@@ -533,7 +600,11 @@ function buildChart() {
       }
       if (year === null) {
         const dataX = (px - NAME_W - curT.x) / (curT.k * kXExtra);
-        year = Math.round(xScale.invert(dataX));
+        const dy    = xScale.invert(dataX);
+        // 月単位データセットでは月の単位にスナップ、それ以外は年単位
+        year = DATASETS[currentKey].monthly
+          ? Math.round(dy * 12) / 12
+          : Math.round(dy);
       }
       selectYear(year);
     });
@@ -669,7 +740,13 @@ function drawBars(cg, ds, yMin, yMax, chartW, chartH) {
 
   /* Vertical grid lines */
   const span = yMax - yMin;
-  const gStep = span > 300 ? 50 : span > 100 ? 10 : 5;
+  let gStep;
+  if (ds.monthly) {
+    // 月単位データセットは細かい縦罫線を許可（span が小さい時は半年/年単位）
+    gStep = span > 100 ? 10 : span > 40 ? 5 : span > 15 ? 1 : 0.5;
+  } else {
+    gStep = span > 300 ? 50 : span > 100 ? 10 : 5;
+  }
   for (let y = Math.ceil(yMin / gStep) * gStep; y <= yMax; y += gStep) {
     cg.append('line')
       .attr('x1', xScale(y)).attr('y1', 0)
@@ -764,7 +841,7 @@ function drawBars(cg, ds, yMin, yMax, chartW, chartH) {
         .attr('pointer-events', 'none').text('?');
     }
 
-    /* Year labels on bar */
+    /* Year labels on bar — 月単位データセットは開始日付のみ表示 */
     if (barW > 18) {
       const _x = x1 + 3;
       cg.append('text')
@@ -775,7 +852,7 @@ function drawBars(cg, ds, yMin, yMax, chartW, chartH) {
         .attr('pointer-events', 'none')
         .text(p.birthUncertain ? '?' : fmtYear(p.birth));
     }
-    if (barW > 28) {
+    if (!ds.monthly && barW > 28) {
       const _x = x2 - 3;
       cg.append('text')
         .attr('class', 'bar-text').attr('data-x', _x)
@@ -840,7 +917,7 @@ function drawBars(cg, ds, yMin, yMax, chartW, chartH) {
           `<div class="tt-name">${p.name}${p.fictional ? ' <span class="tt-fic">(架空)</span>' : ''}</div>` +
           (p.title ? `<div class="tt-role">${p.title}</div>` : '') +
           `<div class="tt-years">${birthStr} 〜 ${deathStr}</div>` +
-          `<div class="tt-age">${getLabel('lifespan', '享年', p.cat)} ${p.death - p.birth}${getLabel('age', '歳', p.cat)}${ageNote}</div>` +
+          `<div class="tt-age">${getLabel('lifespan', '享年', p.cat)} ${fmtAgeVal(p.death - p.birth)}${getLabel('age', '歳', p.cat)}${ageNote}</div>` +
           serveLines;
         ttEl.classList.add('show');
       })
@@ -1045,7 +1122,19 @@ function drawAxisPanel() {
   const x0 = xScale.invert(-t.x / (t.k * kXExtra));
   const x1 = xScale.invert((chartW - t.x) / (t.k * kXExtra));
   const span = x1 - x0;
-  const step = span > 500 ? 100 : span > 200 ? 50 : span > 80 ? 20 : span > 35 ? 10 : 5;
+  let step;
+  if (ds.monthly) {
+    // 月単位データセットは span に応じて 0.25年(=3ヶ月) まで段階的に細かく
+    if      (span > 100) step = 20;
+    else if (span > 40)  step = 10;
+    else if (span > 20)  step = 5;
+    else if (span > 8)   step = 2;
+    else if (span > 3)   step = 1;
+    else if (span > 1.5) step = 0.5;
+    else                 step = 0.25;
+  } else {
+    step = span > 500 ? 100 : span > 200 ? 50 : span > 80 ? 20 : span > 35 ? 10 : 5;
+  }
 
   for (let yr = Math.ceil(x0 / step) * step; yr <= x1; yr += step) {
     const sx = NAME_W + t.x + xScale(yr) * t.k * kXExtra;
@@ -1263,13 +1352,13 @@ document.addEventListener('keydown', e => {
   // Shift+左右矢印 → 横軸のみ拡大縮小（ビューポート中央基準）
   if (e.key === 'ArrowRight' && e.shiftKey) { zoomXBy(1.2, NAME_W + curChartW / 2); return; }
   if (e.key === 'ArrowLeft'  && e.shiftKey) { zoomXBy(1 / 1.2, NAME_W + curChartW / 2); return; }
-  // 左右矢印（Shiftなし）→ 選択年を1年移動 + 画面端で自動スクロール
+  // 左右矢印（Shiftなし）→ 選択年を1年（月単位データセットでは1ヶ月）移動 + 画面端で自動スクロール
   if (e.key === 'ArrowRight' && !e.shiftKey && selectedYear !== null) {
-    selectYear(selectedYear + 1);
+    selectYear(DATASETS[currentKey].monthly ? shiftMonths(selectedYear, +1) : selectedYear + 1);
     scrollYearIntoView(selectedYear);
   }
   if (e.key === 'ArrowLeft' && !e.shiftKey && selectedYear !== null) {
-    selectYear(selectedYear - 1);
+    selectYear(DATASETS[currentKey].monthly ? shiftMonths(selectedYear, -1) : selectedYear - 1);
     scrollYearIntoView(selectedYear);
   }
   // 上下矢印 → 縦スクロール（3行分）
