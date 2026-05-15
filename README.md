@@ -4,7 +4,7 @@
 
 ## 機能
 
-- **複数データセット対応** — 歴史・漫画・ゲームなど多彩な 15 データセットを収録
+- **複数データセット対応** — 歴史・漫画・ゲームなど多彩な 21 データセットを収録
 - **URL ハッシュによるデータセット選択** — `index.html#kamakura` のように URL で直接データセットを指定可能
 - **ズーム・パン** — マウスホイールやドラッグで時代軸を自由に拡縮
 - **横軸のみ拡大縮小** — `Ctrl + ホイール` または `Shift + 左右矢印キー` で年軸だけを伸縮
@@ -33,23 +33,31 @@
 
 ## 収録データセット
 
+スクリプト読み込み順（`index.html`）と同じ順で記載。「キー」は URL ハッシュ（`index.html#<キー>`）に使う `DATASETS` のキー名。
+
 | キー | タイトル | 期間 | 備考 |
 |---|---|---|---|
 | `kamakura` | 鎌倉時代 | 1138〜1358 年 | |
 | `sengoku` | 戦国時代 | 1456〜1636 年 | |
 | `bakumatsu` | 幕末・明治維新 | 1809〜1922 年 | |
+| `historie` | ヒストリエ | 前 382〜前 260 年頃 | 漫画 |
+| `sangokushi` | 三国志 | 135〜252 年 | |
 | `nigejozu` | 逃げ上手の若君 | 1288〜1392 年 | 漫画 |
-| `taiheiki` | 太平記 | 1270〜1400 年 | |
 | `reiri` | レイリ | 1513〜1621 年 | 漫画 |
+| `silence` | 沈黙 | 1580〜1685 年 | 小説 |
 | `ooku` | 大奥 | 1579〜1883 年 | 漫画 |
 | `fuunji` | 風雲児たち 蘭学革命篇 | 1723〜1866 年 | 漫画 |
-| `silence` | 沈黙 | 1580〜1685 年 | 小説 |
-| `sangokushi` | 三国志 | 135〜252 年 | |
-| `historie` | ヒストリエ | 前 382〜前 260 年頃 | 漫画 |
 | `ad_astra` | アド・アストラ ―スキピオとハンニバル― | 前 285〜前 145 年 | 漫画 |
-| `gundam_uc1` | 機動戦士ガンダム（一年戦争） | UC 0014〜UC 0094 年 | 漫画・アニメ（全員架空） |
-| `PrimeMinister_Ja` | 日本の総理大臣 | 1885〜2026 年 | 党別カテゴリ |
+| `taiheiki` | 太平記 | 1270〜1400 年 | |
+| `sori` | 日本の総理大臣 | 1885〜2026 年 | 党別カテゴリ。ファイルは `PrimeMinister_Ja.js`、キーは `sori` |
 | `games` | ゲーム機の歴史 | 1977〜2030 年 | |
+| `kokusan_rpg` | 国産RPGクロニクル | 1974 年 9 月〜2027 年 10 月 | 書籍・ゲーム史（月単位） |
+| `kokusan_rpg_oshii` | 国産RPGクロニクル（押井守インタビュー） | 1951 年 8 月〜2078 年 11 月 | 書籍・押井守章（月単位） |
+| `gundam_uc1` | 機動戦士ガンダム（一年戦争） | UC 0014〜UC 0094 年 | 漫画・アニメ（全員架空） |
+| `radio_saikyo` | ラジオ最強説 | 1998〜2026 年 | TBS ラジオ番組 |
+| `kddi` | KDDI 合併・統合の歴史 | 1953〜2050 年 | 企業史 |
+| `blackberry` | 映画 BlackBerry | 1955〜2025 年 | 映画 |
+| `taiga` | 大河への道 | 1745〜1821 年 | 映画 |
 
 ## ファイル構成
 
@@ -65,18 +73,24 @@ timeline/
     ├── kamakura.js
     ├── sengoku.js
     ├── bakumatsu.js
+    ├── historie.js
+    ├── sangokushi.js
     ├── nigejozu.js
-    ├── taiheiki.js
     ├── reiri.js
+    ├── silence.js
     ├── ooku.js
     ├── fuunji.js
-    ├── silence.js
-    ├── sangokushi.js
-    ├── historie.js
     ├── ad_astra.js
+    ├── taiheiki.js
+    ├── PrimeMinister_Ja.js   # DATASETS.sori を定義
+    ├── games.js
+    ├── kokusan_rpg.js
+    ├── kokusan_rpg_oshii.js
     ├── gundam_uc1.js
-    ├── PrimeMinister_Ja.js
-    └── games.js
+    ├── radio_saikyo.js
+    ├── kddi.js
+    ├── blackberry.js
+    └── taiga.js
 ```
 
 ## 使い方
@@ -88,7 +102,7 @@ timeline/
 ```
 index.html#kamakura
 index.html#gundam_uc1
-index.html#PrimeMinister_Ja
+index.html#sori
 ```
 
 サンプルは https://timeline.ironsite.net/ で公開しています。
