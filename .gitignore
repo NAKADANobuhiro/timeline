@@ -3,3 +3,6 @@ CLAUDE.md
 .claude/
 Runbook.md
 .vscode/
+DECISIONS.md
+.gitignore
+NOTES.md
