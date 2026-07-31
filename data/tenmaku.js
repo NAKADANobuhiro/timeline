@@ -9,16 +9,22 @@ DATASETS.tenmaku = {
   },
   persons: [
     // ── モンゴル皇族 ──
-    { name:"チンギス・カン", title:"モンゴル帝国初代大ハーン",        birth:1162, death:1227, cat:"モンゴル皇族", birthUncertain:true },
+    { name:"チンギス・カン", title:"モンゴル帝国初代大ハーン",        birth:1162, death:1227, cat:"モンゴル皇族", birthUncertain:true,
+      serve:[ { role:"大ハーン", start:1206, end:1227 } ] },
     { name:"ジュチ",         title:"チンギスの長男",                birth:1182, death:1227, cat:"モンゴル皇族", birthUncertain:true, deathUncertain:true },
     { name:"チャガタイ",     title:"チンギスの次男・法の番人",      birth:1183, death:1242, cat:"モンゴル皇族", birthUncertain:true },
-    { name:"オゴデイ",       title:"第2代大ハーン・チンギスの三男",  birth:1186, death:1241, cat:"モンゴル皇族" },
+    { name:"オゴデイ",       title:"第2代大ハーン・チンギスの三男",  birth:1186, death:1241, cat:"モンゴル皇族",
+      serve:[ { role:"大ハーン", start:1229, end:1241 } ] },
     { name:"トルイ",         title:"チンギスの四男・トゥース攻めの主将", birth:1191, death:1232, cat:"モンゴル皇族", birthUncertain:true },
-    { name:"グユク",         title:"第3代大ハーン・オゴデイの長子",  birth:1206, death:1248, cat:"モンゴル皇族" },
-    { name:"モンケ",         title:"トルイの長男・後の第4代大ハーン", birth:1209, death:1259, cat:"モンゴル皇族" },
-    { name:"クビライ",       title:"トルイの子・後の元朝初代皇帝",    birth:1215, death:1294, cat:"モンゴル皇族" },
+    { name:"グユク",         title:"第3代大ハーン・オゴデイの長子",  birth:1206, death:1248, cat:"モンゴル皇族",
+      serve:[ { role:"大ハーン", start:1246, end:1248 } ] },
+    { name:"モンケ",         title:"トルイの長男・第4代大ハーン", birth:1209, death:1259, cat:"モンゴル皇族",
+      serve:[ { role:"大ハーン", start:1251, end:1259 } ] },
+    { name:"クビライ",       title:"トルイの子・第5代大ハーン／元朝初代皇帝",    birth:1215, death:1294, cat:"モンゴル皇族",
+      serve:[ { role:"大ハーン／元朝皇帝", start:1260, end:1294 } ] },
     { name:"フレグ",         title:"トルイの子・後のイルハン朝始祖",  birth:1218, death:1265, cat:"モンゴル皇族", birthUncertain:true },
-    { name:"アリクブケ",     title:"トルイの末子・クビライと帝位を争う", birth:1219, death:1266, cat:"モンゴル皇族", birthUncertain:true },
+    { name:"アリクブケ",     title:"トルイの末子・クビライと帝位を争う", birth:1219, death:1266, cat:"モンゴル皇族", birthUncertain:true,
+      serve:[ { role:"大ハーン（対立）", start:1260, end:1264 } ] },
 
     // ── 后妃・ハトゥン ──
     { name:"ドレゲネ",       title:"オゴデイの第六妃・グユクの生母・オゴデイ死後の監国", birth:1185, death:1246, cat:"后妃・ハトゥン", birthUncertain:true,
