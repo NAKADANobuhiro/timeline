@@ -914,7 +914,7 @@ function drawBars(cg, ds, yMin, yMax, chartW, chartH) {
           `<div class="tt-serve" style="border-left:3px solid ${serveClrs[serves.indexOf(sv) % serveClrs.length]};padding-left:5px;margin-top:3px">${sv.role}: ${fmtYear(sv.start)}〜${fmtYear(sv.end)}</div>`
         ).join('');
         ttEl.innerHTML =
-          `<div class="tt-name">${p.name}${p.fictional ? ' <span class="tt-fic">(架空)</span>' : ''}</div>` +
+          `<div class="tt-name">${p.name}${p.fictional ? ' <span class="tt-fic">(架空)</span>' : ''}${p.notInWork ? ' <span class="tt-fic">(作品未登場)</span>' : ''}</div>` +
           (p.title ? `<div class="tt-role">${p.title}</div>` : '') +
           `<div class="tt-years">${birthStr} 〜 ${deathStr}</div>` +
           `<div class="tt-age">${getLabel('lifespan', '享年', p.cat)} ${fmtAgeVal(p.death - p.birth)}${getLabel('age', '歳', p.cat)}${ageNote}</div>` +
@@ -1007,6 +1007,13 @@ function drawNamesPanel() {
         .attr('font-size', Math.max(6, fsSz * 0.7))
         .attr('font-weight', 400)
         .text('(架空)');
+    }
+    if (p.notInWork) {
+      nameEl.append('tspan')
+        .attr('fill', 'rgba(150,150,150,0.9)')
+        .attr('font-size', Math.max(6, fsSz * 0.7))
+        .attr('font-weight', 400)
+        .text('(未登場)');
     }
   });
 
